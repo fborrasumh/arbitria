@@ -38,7 +38,7 @@ emparejamiento de afirmaciones).
 
 Abre `index.html` en el navegador, pega tu clave de OpenAI (se guarda solo en
 `localStorage`) y carga el manuscrito en PDF, DOCX, TXT o MD. Modelos disponibles:
-`gpt-4o-mini`, `gpt-5.6-luna`, `gpt-5.6-terra` y `gpt-5.6-sol`, con escalonado por rol y
+`gpt-6-luna` (por defecto), `gpt-4o-mini`, `gpt-5.6-luna`, `gpt-5.6-terra` y `gpt-5.6-sol`, con escalonado por rol y
 pista cross-model opcional para el Revisor 2. Exporta a Markdown, Word y JSON.
 
 ## Advertencia de método
