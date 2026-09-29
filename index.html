@@ -58,432 +58,760 @@
   };
 })();
 </script>
-
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ArbitrIA · Panel de revisión por pares</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArbitrIA · Revisión por pares simulada antes de enviar tu artículo</title>
+<meta name="description" content="Un panel de cinco revisores de IA con roles distintos revisa tu manuscrito, un editor sintetiza la decisión y recibes una hoja de ruta de cambios. Para ensayar antes de enviar.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#0F1E24;
-  --ink-2:#1B333C;
-  --paper:#EDF1EC;
-  --paper-2:#E2E8E1;
-  --card:#F7F9F5;
-  --rule:#C2CCC2;
-  --blue:#1F5673;
-  --blue-soft:#DCE8EE;
-  --stamp:#A31237;
-  --amber:#9A6408;
-  --green:#2C6B47;
-  --muted:#5A6A6A;
-  --shadow:0 1px 0 var(--rule);
-  --serif:'Newsreader',Georgia,serif;
-  --sans:'Archivo',system-ui,-apple-system,Segoe UI,sans-serif;
+  --tinta:#0F2237; --acero:#2E4B6B; --acero-claro:#7C93AC; --gris:#5D7691;
+  --papel:#F3F6FA; --blanco:#FFFFFF; --linea:#D8E0E9; --linea-2:#E8EEF4;
+  --brasa:#E4572E; --brasa-osc:#C9441F; --brasa-suave:#FDEBE4;
+  --forjado:#0E7C6B; --forjado-suave:#E0F3EE; --aviso:#8A3617;
+  --c-ctx:#1F6FB2; --c-comp:#6B4FD8; --c-rda:#0E8C7A; --c-tema:#C98200; --c-eval:#E4572E; --c-final:#2E4B6B;
+  --sombra:0 1px 0 rgba(15,34,55,.05), 0 14px 34px -22px rgba(15,34,55,.45);
+  --sombra-alta:0 2px 0 rgba(15,34,55,.04), 0 22px 50px -24px rgba(15,34,55,.55);
+  --r:14px;
+  --display:"Bricolage Grotesque",Georgia,serif;
+  --texto:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{
-  background:var(--paper);
-  color:var(--ink);
-  font-family:var(--sans);
-  font-size:15px;
-  line-height:1.5;
-  -webkit-font-smoothing:antialiased;
+body{background:var(--papel);color:var(--tinta);font-family:var(--texto);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:84px}
+a{color:var(--acero)}
+:focus-visible{outline:3px solid var(--brasa);outline-offset:2px;border-radius:6px}
+.hidden{display:none!important}
+svg.i{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+code{font-family:var(--mono);font-size:.85em;background:var(--linea-2);padding:1px 5px;border-radius:5px}
+
+/* Barra superior */
+.topbar{position:sticky;top:0;z-index:40;background:var(--tinta);color:#EAF1F7;box-shadow:0 6px 24px -14px rgba(0,0,0,.6)}
+.tb-in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px}
+.logo{background:none;border:0;color:#fff;font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.03em;cursor:pointer;padding:2px 4px;display:flex;align-items:center;gap:8px}
+.logo em{font-style:normal;color:var(--brasa)}
+.logo .anv{width:30px;height:30px;border-radius:9px;background:var(--brasa);display:grid;place-items:center;color:#fff}
+.stepper{flex:1;display:flex;align-items:center;justify-content:center;min-width:0}
+.sdot{display:flex;align-items:center;gap:7px;background:none;border:0;color:#8FA7BE;font:600 13px var(--texto);padding:6px;cursor:pointer;border-radius:10px;white-space:nowrap}
+.sdot:disabled{cursor:not-allowed;opacity:.45}
+.sdot .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:2px solid #3E5C7D;font-size:12px;color:#A9C0D4;transition:all .2s}
+.sdot .n svg{width:14px;height:14px}
+.sdot[data-state="done"] .n{background:var(--forjado);border-color:var(--forjado);color:#fff}
+.sdot[data-state="now"]{color:#fff}
+.sdot[data-state="now"] .n{background:var(--brasa);border-color:var(--brasa);color:#fff;box-shadow:0 0 0 4px rgba(228,87,46,.25)}
+.sdot:not(:disabled):hover{background:rgba(255,255,255,.06)}
+.sline{flex:0 1 26px;height:2px;background:#2F4A68;min-width:6px}
+.sline.on{background:var(--forjado)}
+.tb-tools{display:flex;gap:6px}
+.tb-btn{background:transparent;border:1px solid #3E5C7D;color:#C9D8E6;border-radius:9px;padding:6px 10px;font:600 13px var(--texto);cursor:pointer;display:flex;align-items:center;gap:6px}
+.tb-btn:hover{border-color:var(--brasa);color:#fff}
+.progress{height:4px;background:#1E3550}
+.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brasa),#F59E0B);transition:width .4s}
+@media(max-width:960px){.sdot .lbl{display:none}.sdot[data-state="now"] .lbl{display:inline}}
+@media(max-width:720px){
+  .tb-in{flex-wrap:wrap;gap:8px}
+  .stepper{order:3;flex-basis:100%;justify-content:space-between}
+  .sdot[data-state="now"] .lbl{display:none}
+  .tb-btn .lbl{display:none}
 }
-a{color:var(--blue)}
-button{font-family:inherit;font-size:inherit;cursor:pointer}
-input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
 
-/* ---------- masthead ---------- */
-.masthead{
-  border-bottom:2px solid var(--ink);
-  background:var(--paper);
-  position:sticky;top:0;z-index:40;
+/* Pantallas */
+main{max-width:1180px;margin:0 auto;padding:26px 16px 40px}
+.screen{display:none}
+.screen.on{display:block}
+@media(prefers-reduced-motion:no-preference){.screen.on{animation:rise .35s cubic-bezier(.2,.7,.3,1) both}@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}}
+.sh{display:flex;gap:18px;align-items:flex-start;margin:4px 0 22px}
+.sh-ico{width:64px;height:64px;border-radius:18px;background:var(--c,var(--brasa));color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 12px 24px -14px var(--c,var(--brasa))}
+.sh-ico svg{width:32px;height:32px}
+.sh-step{font:600 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acero-claro);margin:4px 0}
+.sh h2{font-family:var(--display);font-weight:800;font-size:clamp(26px,3.6vw,38px);letter-spacing:-.025em;line-height:1.05;margin:0 0 6px}
+.sh-lede{margin:0;color:var(--gris);font-size:16.5px;max-width:70ch}
+@media(max-width:600px){.sh-ico{width:48px;height:48px;border-radius:14px}.sh-ico svg{width:24px;height:24px}}
+
+.card{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);box-shadow:var(--sombra);padding:20px;margin-bottom:18px}
+.card h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.01em;margin:0 0 4px;display:flex;align-items:center;gap:9px}
+.card h3 .num{width:26px;height:26px;border-radius:8px;background:var(--tinta);color:#fff;font:700 13px var(--mono);display:grid;place-items:center}
+.card .sub{margin:0 0 14px;color:var(--gris);font-size:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cols{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:20px;align-items:start}
+.sticky{position:sticky;top:96px}
+@media(max-width:900px){.cols{grid-template-columns:1fr}.sticky{position:static}}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+
+label,.lab{display:block;font-size:13.5px;font-weight:600;margin:0 0 6px;color:var(--acero)}
+label small,.lab small{font-weight:500;color:var(--acero-claro)}
+input[type=text],input[type=password],input[type=number],textarea,select{width:100%;padding:11px 13px;border:1.5px solid var(--linea);border-radius:10px;font-family:var(--texto);font-size:15px;color:var(--tinta);background:#fff;transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acero-claro);box-shadow:0 0 0 4px rgba(124,147,172,.18)}
+input.bad{border-color:var(--brasa);box-shadow:0 0 0 4px rgba(228,87,46,.15)}
+textarea{resize:vertical;min-height:96px;line-height:1.5}
+input::placeholder,textarea::placeholder{color:#9DB0C2}
+.field{margin-bottom:16px}
+.help{font-size:12.8px;color:var(--gris);margin:6px 0 0}
+.help b{color:var(--acero)}
+
+button{font-family:var(--texto);cursor:pointer}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:11px;font-weight:600;font-size:15px;border:1.5px solid transparent;padding:11px 18px;transition:transform .08s,background .15s,border-color .15s;text-decoration:none;line-height:1.2}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--brasa);color:#fff;box-shadow:0 8px 18px -10px var(--brasa)}
+.btn-primary:hover{background:var(--brasa-osc)}
+.btn-big{font-size:17px;padding:14px 24px;border-radius:13px}
+.btn-dark{background:var(--tinta);color:#fff}
+.btn-dark:hover{background:#1c3656}
+.btn-ghost{background:#fff;border-color:var(--linea);color:var(--acero)}
+.btn-ghost:hover{border-color:var(--acero-claro);background:#F7FAFC}
+.btn-ok{background:var(--forjado);color:#fff}
+.btn-ok:hover{background:#0b6457}
+.btn-word{background:#2B579A;color:#fff}
+.btn-word:hover{background:#1e3f7a}
+.btn-sm{padding:7px 12px;font-size:13.5px;border-radius:9px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:#fff;border:1.5px solid var(--linea);border-radius:999px;padding:7px 13px;font-size:13.5px;color:var(--acero);cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1.25;text-align:left}
+.chip:hover{border-color:var(--brasa);color:var(--brasa)}
+.chip[aria-pressed="true"]{background:var(--tinta);border-color:var(--tinta);color:#fff}
+.chip.mini-ex{font-size:12.5px;padding:4px 10px;border-style:dashed}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1.5px solid var(--linea);background:#fff;border-radius:9px;padding:7px 11px;font-size:13.5px;font-weight:600;color:var(--acero)}
+.seg button:hover{border-color:var(--acero-claro)}
+.seg button[aria-pressed="true"]{background:var(--tinta);border-color:var(--tinta);color:#fff}
+
+.meto{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.meto button{text-align:left;background:#fff;border:1.5px solid var(--linea);border-radius:12px;padding:10px 12px;color:var(--tinta)}
+.meto button b{display:block;font-size:14px}
+.meto button span{display:block;font-size:12.3px;color:var(--gris);line-height:1.35;margin-top:2px}
+.meto button:hover{border-color:var(--acero-claro)}
+.meto button[aria-pressed="true"]{border-color:var(--tinta);box-shadow:0 0 0 2px var(--tinta);background:var(--papel)}
+
+.tip{display:flex;gap:12px;background:#FFF8E6;border:1px solid #F3DDA0;border-radius:12px;padding:13px 15px;font-size:14px;color:#6B4E00;margin-bottom:18px}
+.tip svg{width:22px;height:22px;color:#C98200;flex:none;margin-top:1px}
+.tip strong{color:#523B00}
+.aviso{background:var(--brasa-suave);border:1px solid #F3C7B5;border-radius:12px;padding:13px 15px;font-size:14px;color:var(--aviso);margin-bottom:16px}
+.okbox{background:var(--forjado-suave);border:1px solid #A9DCCF;border-radius:12px;padding:13px 15px;font-size:14px;color:#0B5A4E;margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+/* Inicio */
+.hero{background:var(--tinta);color:#EAF1F7;border-radius:22px;padding:40px 36px;position:relative;overflow:hidden;margin-bottom:26px;box-shadow:var(--sombra-alta)}
+.hero::before{content:"";position:absolute;right:-80px;top:-80px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(228,87,46,.55),transparent 65%)}
+.hero::after{content:"";position:absolute;left:30%;bottom:-140px;width:420px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(14,140,122,.35),transparent 65%)}
+.hero>*{position:relative;z-index:1}
+@media(max-width:600px){.hero{padding:28px 20px;border-radius:18px}}
+.eyebrow{font:600 11.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#8FA7BE;margin:0 0 14px}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,5.4vw,58px);line-height:.98;letter-spacing:-.035em;margin:0 0 16px;max-width:17ch}
+.hero h1 em{font-style:normal;color:var(--brasa)}
+.hero p.lede{max-width:62ch;font-size:18px;color:#C3D3E2;margin:0 0 24px}
+.hero .actions .btn-ghost{background:transparent;color:#fff;border-color:#4A6787}
+.hero .actions .btn-ghost:hover{border-color:#fff}
+.draft{margin-top:18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:14.5px}
+.sec-title{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.02em;margin:34px 0 6px}
+.sec-sub{color:var(--gris);margin:0 0 16px}
+.journey{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.jstop{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:16px;position:relative}
+.jstop .ji{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;background:var(--c);margin-bottom:10px}
+.jstop .ji svg{width:20px;height:20px}
+.jstop b{display:block;font-size:15px;margin-bottom:2px}
+.jstop span{display:block;font-size:13px;color:var(--gris);line-height:1.45}
+.jstop .jn{position:absolute;top:12px;right:14px;font:700 12px var(--mono);color:var(--acero-claro)}
+@media(max-width:900px){.journey{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.journey{grid-template-columns:1fr}}
+
+.parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.part{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--linea);border-radius:12px;padding:12px 14px}
+.part .pi{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c);display:grid;place-items:center;flex:none}
+.part b{display:block;font-size:14.5px}
+.part span{display:block;font-size:12.8px;color:var(--gris);line-height:1.4}
+
+.examples{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.excard{background:#fff;border:1px solid var(--linea);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--sombra);position:relative;overflow:hidden;text-align:left;font:inherit;color:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.excard:hover{transform:translateY(-3px);box-shadow:var(--sombra-alta)}
+.excard::before{content:"";position:absolute;left:0;top:0;right:0;height:5px;background:var(--c)}
+.excard .emo{font-size:32px;line-height:1}
+.excard .area{font:700 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--acero-claro)}
+.excard b{font-family:var(--display);font-size:18px;letter-spacing:-.01em;line-height:1.15}
+.excard p{margin:0;font-size:13.5px;color:var(--gris);flex:1}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--c);background:color-mix(in srgb,var(--c) 12%,#fff);border-radius:999px;padding:3px 9px;align-self:flex-start}
+
+/* Clave */
+.keyrow{display:flex;gap:8px}
+.keyrow input{flex:1;font-family:var(--mono);font-size:14px}
+.eye{width:46px;flex:none;border:1.5px solid var(--linea);background:#fff;border-radius:10px;color:var(--acero);display:grid;place-items:center}
+.light{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:var(--papel);margin-top:14px;font-size:14.5px;font-weight:600}
+.light .bulbo{width:14px;height:14px;border-radius:50%;background:#B8C5D3;box-shadow:0 0 0 4px rgba(184,197,211,.3);flex:none}
+.light[data-s="ok"] .bulbo{background:#16A34A;box-shadow:0 0 0 4px rgba(22,163,74,.22)}
+.light[data-s="err"] .bulbo{background:var(--brasa);box-shadow:0 0 0 4px rgba(228,87,46,.22)}
+.light[data-s="wait"] .bulbo{background:#F59E0B;box-shadow:0 0 0 4px rgba(245,158,11,.25)}
+.olsteps{list-style:none;padding:0;margin:0;counter-reset:o;display:flex;flex-direction:column;gap:12px}
+.olsteps li{counter-increment:o;display:flex;gap:12px;font-size:14.5px;align-items:flex-start}
+.olsteps li::before{content:counter(o);width:28px;height:28px;border-radius:50%;background:var(--brasa-suave);color:var(--brasa);font:700 13px var(--mono);display:grid;place-items:center;flex:none}
+
+/* Acordeones */
+.acc{background:#fff;border:1px solid var(--linea);border-radius:var(--r);margin-bottom:12px;box-shadow:var(--sombra);overflow:hidden}
+.acc>summary{list-style:none;cursor:pointer;padding:15px 18px;display:flex;align-items:center;gap:12px}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary .ai{width:36px;height:36px;border-radius:10px;background:var(--papel);color:var(--acero);display:grid;place-items:center;flex:none}
+.acc[open]>summary .ai{background:var(--tinta);color:#fff}
+.acc>summary b{font-family:var(--display);font-size:17px;display:block}
+.acc>summary small{display:block;color:var(--gris);font-size:13px}
+.acc>summary .chev{margin-left:auto;transition:transform .2s;color:var(--acero-claro)}
+.acc[open]>summary .chev{transform:rotate(180deg)}
+.acc .inner{padding:4px 18px 18px;border-top:1px solid var(--linea-2)}
+.acc .inner>*:first-child{margin-top:14px}
+.prompt-ta{font-family:var(--mono);font-size:12.3px;min-height:130px;background:#FBFDFE}
+
+/* Resumen lateral */
+.sum h3{margin-bottom:10px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.stat{background:var(--papel);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font:800 24px var(--display);letter-spacing:-.02em;line-height:1.1}
+.stat span{font-size:12.3px;color:var(--gris)}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.checks li{display:flex;gap:9px;align-items:center;color:var(--gris)}
+.checks li .ck{width:20px;height:20px;border-radius:50%;border:2px solid var(--linea);display:grid;place-items:center;flex:none}
+.checks li.on{color:var(--tinta)}
+.checks li.on .ck{background:var(--forjado);border-color:var(--forjado);color:#fff}
+.checks li .ck svg{width:12px;height:12px}
+.docname{margin-top:14px;padding:11px 13px;border-radius:11px;background:var(--tinta);color:#C3D3E2;font-size:13.5px}
+.docname b{color:#fff}
+
+/* Generación */
+.agents{display:flex;flex-direction:column;gap:10px}
+.agent{background:#fff;border:1px solid var(--linea);border-radius:var(--r);box-shadow:var(--sombra);overflow:hidden;transition:border-color .2s}
+.agent-h{display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer}
+.agent .ai{width:42px;height:42px;border-radius:12px;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c);display:grid;place-items:center;flex:none;transition:all .2s}
+.agent .ai svg{width:20px;height:20px}
+.agent-t{flex:1;min-width:0}
+.agent-t b{display:block;font-family:var(--display);font-size:16.5px}
+.agent-t span{display:block;font-size:13px;color:var(--gris)}
+.pill{font-size:12.5px;font-weight:700;border-radius:999px;padding:4px 10px;background:var(--linea-2);color:var(--gris);white-space:nowrap}
+.agent[data-s="run"]{border-color:#F59E0B}
+.agent[data-s="run"] .ai{background:var(--c);color:#fff;animation:pulse 1s infinite alternate}
+.agent[data-s="run"] .pill{background:#FFF1D6;color:#8A5A00}
+.agent[data-s="ok"] .ai{background:var(--c);color:#fff}
+.agent[data-s="ok"] .pill{background:var(--forjado-suave);color:var(--forjado)}
+.agent[data-s="err"]{border-color:var(--brasa)}
+.agent[data-s="err"] .pill{background:var(--brasa-suave);color:var(--brasa)}
+.agent-b{display:none;padding:4px 18px 16px 72px;font-size:14px;border-top:1px solid var(--linea-2);background:#FBFDFE}
+.agent.open .agent-b{display:block}
+@media(max-width:600px){.agent-b{padding-left:18px}}
+@keyframes pulse{from{transform:scale(1);box-shadow:0 0 0 0 rgba(228,87,46,.5)}to{transform:scale(1.06);box-shadow:0 0 0 10px rgba(228,87,46,0)}}
+.forging{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;background:var(--tinta);color:#fff;margin-bottom:16px}
+.forging .spark{width:44px;height:44px;border-radius:12px;background:var(--brasa);display:grid;place-items:center;flex:none;animation:pulse 1s infinite alternate}
+.forging.done .spark{background:var(--forjado);animation:none}
+.forging.err .spark{animation:none}
+.forging b{font-family:var(--display);font-size:18px;display:block}
+.forging span{font-size:14px;color:#C3D3E2}
+.mini-list{margin:10px 0 0;padding:0;list-style:none}
+.mini-list li{padding:5px 0;border-bottom:1px solid var(--linea-2)}
+.mini-list li:last-child{border-bottom:0}
+.code{display:inline-block;font:700 11px var(--mono);border-radius:5px;padding:1px 6px;margin-right:6px;background:var(--linea-2);color:var(--acero)}
+
+/* Guía */
+.res-head{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.res-head h2{font-family:var(--display);font-weight:800;font-size:clamp(24px,3vw,32px);letter-spacing:-.02em;margin:0;flex:1;min-width:240px;line-height:1.1}
+.doc{background:#fff;border:1px solid var(--linea);border-radius:18px;box-shadow:var(--sombra-alta);padding:40px 44px;max-width:900px;margin:0 auto}
+@media(max-width:700px){.doc{padding:22px 16px}}
+.doc-h{border-bottom:3px solid var(--tinta);padding-bottom:18px;margin-bottom:26px}
+.doc-kind{font:600 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--brasa);margin:0 0 6px}
+.doc-h h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,3.4vw,36px);letter-spacing:-.025em;line-height:1.05;margin:0 0 12px}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.meta span{font-size:12.8px;font-weight:600;background:var(--papel);color:var(--acero);border-radius:999px;padding:4px 11px}
+.dsec{margin-bottom:28px}
+.dsec h2{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em;margin:0 0 10px;display:flex;align-items:center;gap:10px}
+.dsec h2 .num{width:28px;height:28px;border-radius:8px;background:var(--tinta);color:#fff;font:700 13px var(--mono);display:grid;place-items:center;flex:none}
+.dsec p{margin:0 0 10px;max-width:75ch}
+.sublab{font-size:13px;font-weight:700;color:var(--acero-claro);margin:14px 0 6px}
+.row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--linea-2);font-size:14.5px;align-items:flex-start}
+.row:last-child{border-bottom:0}
+.row .code{margin-top:2px;flex:none}
+.code.cg{background:#E6F0FA;color:var(--c-ctx)}
+.code.ce{background:#EEEAFB;color:var(--c-comp)}
+.code.bl{background:var(--forjado-suave);color:var(--forjado)}
+.code.tm{background:var(--tinta);color:#fff}
+.row .hrs{margin-left:auto;font-size:12.5px;color:var(--gris);white-space:nowrap}
+.blk{font-weight:700;margin:16px 0 4px;display:flex;gap:8px;align-items:baseline}
+.blk small{font-weight:500;color:var(--gris)}
+.tbl-wrap{overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{background:var(--tinta);color:#fff;text-align:left;padding:9px 11px;font-size:12.5px;font-weight:700}
+table.t td{padding:9px 11px;border-bottom:1px solid var(--linea-2);vertical-align:top}
+table.t tr:nth-child(even) td{background:#FAFCFE}
+.peso{font-weight:800;color:var(--brasa);white-space:nowrap}
+.note{margin-top:12px;padding:11px 14px;background:var(--papel);border-left:4px solid var(--forjado);border-radius:8px;font-size:14px}
+.demo-flag{background:#FFF8E6;border:1px solid #F3DDA0;color:#6B4E00;border-radius:12px;padding:11px 15px;font-size:14px;margin:0 auto 16px;max-width:900px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.demo-flag svg{color:#C98200}
+
+/* Navegación inferior */
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:35;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--linea)}
+.bn-in{max-width:1180px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.bn-hint{flex:1;text-align:center;font-size:14px;color:var(--gris)}
+.bn-hint b{color:var(--tinta)}
+@media(max-width:600px){.bn-hint{display:none}.bn-in{justify-content:space-between}}
+
+/* Modal */
+.modal{position:fixed;inset:0;z-index:60;background:rgba(15,34,55,.55);display:none;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow:auto}
+.modal.on{display:flex}
+.modal-box{background:#fff;border-radius:18px;max-width:760px;width:100%;box-shadow:var(--sombra-alta);overflow:hidden}
+.modal-head{display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--tinta);color:#fff}
+.modal-head h2{font-family:var(--display);font-size:22px;margin:0;flex:1}
+.modal-head button{background:transparent;border:1px solid #4A6787;color:#fff;border-radius:9px;padding:6px 10px}
+.modal-body{padding:18px 20px 22px}
+.glos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.glos{grid-template-columns:1fr}}
+.glos div{background:var(--papel);border-radius:12px;padding:12px 14px}
+.glos b{display:block;font-family:var(--display);font-size:16px;margin-bottom:2px}
+.glos span{font-size:13.8px;color:var(--acero)}
+.hist{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--linea);border-radius:12px;margin-bottom:8px}
+.hist-t{flex:1;min-width:0;cursor:pointer}
+.hist-t b{display:block;font-size:15px}
+.hist-t span{font-size:12.8px;color:var(--gris)}
+.hist:hover{border-color:var(--acero-claro)}
+.iconbtn{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--linea);background:#fff;color:var(--acero);display:grid;place-items:center;padding:0}
+.iconbtn:hover{border-color:var(--brasa);color:var(--brasa)}
+.empty{text-align:center;color:var(--gris);padding:30px 10px}
+
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--tinta);color:#fff;padding:11px 18px;border-radius:12px;font-size:14.5px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:70;max-width:90vw;text-align:center;box-shadow:var(--sombra-alta)}
+.toast.on{opacity:1;transform:translateX(-50%)}
+footer{max-width:1180px;margin:0 auto;padding:0 16px 30px;font-size:13px;color:#6E8299}
+footer hr{border:0;border-top:1px solid var(--linea);margin:0 0 14px}
+
+@media print{
+  body{background:#fff;padding:0}
+  .topbar,.bottomnav,.res-head,.demo-flag,.okbox,footer,.toast,.modal{display:none!important}
+  main{padding:0;max-width:none}
+  .screen{display:none!important}
+  
+  .doc{box-shadow:none;border:0;padding:0;max-width:none}
+  .dsec{break-inside:avoid-page}
+  table.t th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
-.masthead-in{
-  max-width:1400px;margin:0 auto;padding:10px 20px;
-  display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;
-}
-.wordmark{
-  font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-.01em;
-  line-height:1;margin:0;
-}
-.wordmark span{color:var(--blue)}
-.tagline{font-size:13px;color:var(--muted);flex:1;min-width:180px}
-.masthead-actions{display:flex;gap:8px;align-items:center}
+/* ══ v2 ══ */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:640px){.grid3{grid-template-columns:1fr}}
+.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:960px){.feats{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.feats{grid-template-columns:1fr}}
+.feat{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:16px;border-top:4px solid var(--c)}
+.feat .pi{width:38px;height:38px;border-radius:11px;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c);display:grid;place-items:center;margin-bottom:10px}
+.feat b{display:block;font-family:var(--display);font-size:17px;margin-bottom:3px}
+.feat span{display:block;font-size:13.5px;color:var(--gris);line-height:1.45}
+.importbar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--tinta);color:#EAF1F7;border-radius:var(--r);padding:14px 16px;margin-bottom:18px}
+.importbar .pi{width:40px;height:40px;border-radius:11px;background:var(--brasa);display:grid;place-items:center;flex:none}
+.importbar b{display:block;font-size:15px}
+.importbar span{display:block;font-size:13.3px;color:#A9C0D4}
+.importbar .btn-dark{background:#fff;color:var(--tinta)}
+.importbar .btn-dark:hover{background:#EAF1F7}
+.inacc{border-top:1px solid var(--linea-2);margin-top:4px;padding-top:12px}
+.inacc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--acero)}
+.inacc>summary::-webkit-details-marker{display:none}
+.inacc>summary .chev{margin-left:auto;transition:transform .2s;color:var(--acero-claro)}
+.inacc[open]>summary .chev{transform:rotate(180deg)}
+.rec{display:inline-block;font:700 11px var(--texto);background:var(--forjado-suave);color:var(--forjado);border-radius:999px;padding:2px 8px;vertical-align:2px;margin-left:4px}
+.checkgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:560px){.checkgrid{grid-template-columns:1fr}}
+.checkgrid label{display:flex;gap:9px;align-items:center;margin:0;padding:9px 11px;border-radius:10px;background:var(--papel);font-weight:500;color:var(--tinta);cursor:pointer;font-size:14px}
+.checkgrid input{width:18px;height:18px;accent-color:var(--forjado);margin:0}
+.checkgrid label:has(input:checked){background:var(--forjado-suave)}
+.drop{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;border:2px dashed var(--linea);border-radius:14px;padding:24px;cursor:pointer;color:var(--acero);margin:0;font-weight:500}
+.drop svg{width:30px;height:30px;color:var(--brasa)}
+.drop b{font-size:15px;color:var(--tinta)}
+.drop span{font-size:13px;color:var(--gris)}
+.drop.over,.drop:hover{border-color:var(--brasa);background:var(--brasa-suave)}
 
-/* ---------- layout ---------- */
-.shell{max-width:1400px;margin:0 auto;padding:20px;display:grid;grid-template-columns:340px 1fr;gap:28px;align-items:start}
-@media(max-width:1000px){.shell{grid-template-columns:1fr;gap:20px;padding:14px}}
-.rail{position:sticky;top:70px;display:flex;flex-direction:column;gap:18px}
-@media(max-width:1000px){.rail{position:static}}
 
-.block{background:var(--card);border:1px solid var(--rule);border-radius:2px}
-.block > h2{
-  font-family:var(--sans);font-size:13px;font-weight:600;margin:0;
-  padding:9px 12px;border-bottom:1px solid var(--rule);
-  background:var(--paper-2);display:flex;justify-content:space-between;align-items:center;gap:8px;
-}
-.block-body{padding:12px}
-.block-body > * + *{margin-top:10px}
 
-label.field{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
-input[type=text],input[type=password],select,textarea{
-  width:100%;padding:7px 9px;border:1px solid var(--rule);border-radius:2px;
-  background:#fff;
-}
-textarea{resize:vertical;line-height:1.45}
-input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
-.row{display:flex;gap:8px}
-.row > *{flex:1;min-width:0}
+/* ══ ArbitrIA ══ */
+.modos{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:6px}
+@media(max-width:900px){.modos{grid-template-columns:1fr 1fr}}
+.modos button{text-align:left;background:#fff;border:2px solid var(--linea);border-radius:14px;padding:12px 13px;box-shadow:var(--sombra)}
+.modos button[aria-pressed="true"]{border-color:var(--brasa);box-shadow:0 0 0 3px rgba(228,87,46,.18)}
+.modos b{display:block;font-size:14.5px;margin-bottom:3px}.modos small{display:block;font-size:12.5px;color:var(--gris);line-height:1.4}
+.ejs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:700px){.ejs{grid-template-columns:1fr}}
+.ejs button{text-align:left;background:var(--papel);border:1.5px solid transparent;border-radius:12px;padding:11px 13px}
+.ejs button:hover{border-color:var(--acero-claro)}.ejs b{display:block;font-size:14px}.ejs small{color:var(--gris);font-size:12.5px}
+textarea#manuscript{min-height:260px;font-family:Georgia,serif;font-size:14.5px;line-height:1.6}
+.seats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+@media(max-width:900px){.seats{grid-template-columns:1fr 1fr}}
+.seat{background:#fff;border:1.5px solid var(--linea);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;position:relative}
+.seat.da{background:#FFF8F4}
+.seat .sigil{font:800 12px var(--mono);color:#fff;background:var(--tinta);border-radius:6px;padding:2px 7px;align-self:flex-start}
+.seat.da .sigil{background:var(--brasa)}
+.seat .seat-name{font-weight:700;font-size:13.5px}.seat .seat-sub{font-size:12px;color:var(--gris)}
+.seat .status{font-size:11.5px;font-weight:700;color:var(--gris)}.seat .status.ok{color:var(--forjado)}.seat .status.run{color:#C98200}.seat .status.err{color:var(--brasa)}
+#phaseList{list-style:none;margin:0;padding:0;display:flex;gap:6px;flex-wrap:wrap}
+#phaseList li{display:flex;gap:6px;align-items:center;background:var(--papel);border-radius:999px;padding:5px 12px;font-size:12.5px}
+#phaseList li .n{font:800 11px var(--mono);color:var(--acero-claro)}#phaseList li .st{color:var(--gris)}
+#phaseList li.done{background:var(--forjado-suave)}#phaseList li.active{background:#FFF1D6}
+#usageBox{font-size:12.5px;color:var(--gris);margin-top:8px}
+.panelbox{background:#fff;border:1px solid var(--linea);border-radius:18px;box-shadow:var(--sombra);margin-bottom:16px;overflow:hidden}
+.panelbox>header{display:flex;gap:10px;align-items:baseline;padding:14px 18px;border-bottom:1px solid var(--linea-2);flex-wrap:wrap}
+.panelbox>header h2{font-family:var(--display);font-size:20px;margin:0;flex:1}.panelbox>header .meta{font-size:12.5px;color:var(--gris)}
+.panelbox .inner{padding:16px 18px}
+.prose{font-size:15px;line-height:1.65}.prose h3{font-family:var(--display);font-size:17px;margin:20px 0 8px}.prose h4{font-size:14.5px;margin:12px 0 4px}
+.prose ul,.prose ol{padding-left:20px}.prose p{margin:0 0 10px}
+.hint{font-size:12.8px;color:var(--gris)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+table.kv,table.jt{width:100%;border-collapse:collapse;font-size:13px}
+table.kv td{padding:6px 8px;border-bottom:1px solid var(--linea-2);vertical-align:top}table.kv td:first-child{color:var(--gris);width:40%}
+table.jt th{background:var(--tinta);color:#fff;text-align:left;padding:7px 8px;font-size:11.5px}table.jt td{padding:7px 8px;border-bottom:1px solid var(--linea-2);vertical-align:top}
+.jt .j-EXCEEDS,.jt .j-MEETS{color:var(--forjado);font-weight:700}.jt .j-PARTLY_MEETS{color:#8A5A00;font-weight:700}.jt .j-DOES_NOT_MEET{color:var(--brasa);font-weight:700}.jt .j-NOT_ASSESSED{color:var(--gris)}
+.confcard{background:var(--papel);border-radius:14px;padding:12px 14px}
+.confcard h4{margin:0 0 4px;font-size:15px}.confcard .who{font-size:12px;color:var(--gris);margin-bottom:6px}
+.confcard textarea{width:100%;min-height:58px;font-size:13.5px;padding:8px 10px;border:1.5px solid var(--linea);border-radius:10px;background:#fff}
+.confcard.da{background:#FFF8F4}
+label.field{font-size:12.5px;font-weight:600;color:var(--acero);display:block;margin-bottom:3px}
+.chip{display:inline-block}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{border:1.5px solid var(--linea);background:#fff;border-radius:10px;padding:7px 12px;font-weight:700;font-size:13px;color:var(--acero)}
+.tabs button.sel{background:var(--tinta);border-color:var(--tinta);color:#fff}
+.finding{border:1px solid var(--linea);border-left:4px solid var(--acero-claro);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fff}
+.finding.strength,.finding.ok{border-left-color:var(--forjado)}.finding.critical{border-left-color:var(--brasa)}.finding.major{border-left-color:#F59E0B}.finding.minor{border-left-color:var(--acero-claro)}
+.finding h5{margin:0 0 6px;font-size:14.5px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.finding p{margin:0 0 6px;font-size:14px}
+.tag{font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;background:var(--linea-2);color:var(--acero);text-transform:none}
+.tag.critical{background:var(--brasa-suave);color:var(--brasa)}.tag.major{background:#FFF1D6;color:#8A5A00}.tag.minor{background:var(--linea-2);color:var(--acero)}.tag.ok{background:var(--forjado-suave);color:var(--forjado)}
+.anchor{font:12px var(--mono);color:var(--acero);background:var(--papel);border-radius:6px;padding:5px 8px;margin-top:4px;word-break:break-word}
+.decision{display:flex;gap:18px;align-items:center;border:2px solid var(--linea);border-radius:16px;padding:16px 18px;flex-wrap:wrap}
+.decision .word{font-family:var(--display);font-size:30px;font-weight:800;line-height:1.1}
+.decision .sub{flex:1;min-width:220px;font-size:13.5px;color:var(--acero)}
+.decision.accept{border-color:var(--forjado);background:var(--forjado-suave)}.decision.accept .word{color:var(--forjado)}
+.decision.minor{border-color:#1F6FB2;background:#EAF3FB}.decision.minor .word{color:#1F6FB2}
+.decision.major{border-color:#F59E0B;background:#FFF8E6}.decision.major .word{color:#8A5A00}
+.decision.reject{border-color:var(--brasa);background:var(--brasa-suave)}.decision.reject .word{color:var(--brasa)}
+.gate{border-radius:12px;padding:10px 12px;background:var(--brasa-suave);font-size:13.5px}.gate.clear{background:var(--forjado-suave)}
+.warn{border-radius:12px;padding:10px 12px;background:#FFF8E6;font-size:13.5px;color:#6B4E00}.warn.bad{background:var(--brasa-suave);color:#7A2A12}
+.rm{border:1px solid var(--linea);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fff}
+.rm h5{margin:0 0 4px;font-size:14.5px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.rm .src{font-size:12px;color:var(--gris)}
+.rm textarea{width:100%;min-height:44px;margin-top:6px;font-size:13px;padding:6px 9px;border:1.5px solid var(--linea);border-radius:9px}
+.triage{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.triage button{border:1.5px solid var(--linea);background:#fff;border-radius:9px;padding:5px 10px;font-size:12.5px;font-weight:600;color:var(--acero)}
+.triage button.sel{background:var(--tinta);color:#fff;border-color:var(--tinta)}
+.chat{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow:auto}
+.msg{border-radius:12px;padding:9px 12px;font-size:14px;max-width:90%}.msg .who{font-size:11px;font-weight:800;color:var(--gris);margin-bottom:3px}
+.msg.me{align-self:flex-end;background:var(--brasa-suave)}.msg.coach{align-self:flex-start;background:var(--papel)}
+.btn.ghost{background:#fff;border-color:var(--linea);color:var(--acero)}.btn.small{padding:6px 11px;font-size:13px;border-radius:9px}
+.empty{text-align:center;color:var(--gris);padding:24px}
+.modal-bg{position:fixed;inset:0;background:rgba(15,34,55,.55);z-index:90;display:grid;place-items:center;padding:16px}
+.modal-bg .modal{background:#fff;border-radius:18px;max-width:760px;width:100%;max-height:85vh;overflow:auto;box-shadow:var(--sombra-alta)}
+.modal-bg .modal header{display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--tinta);color:#fff;position:sticky;top:0}
+.modal-bg .modal header h3{margin:0;flex:1;font-family:var(--display)}.modal-bg .mbody{padding:16px 18px}
+#toastHost{display:none}
 
-.btn{
-  border:1px solid var(--ink);background:var(--ink);color:var(--paper);
-  padding:8px 14px;border-radius:2px;font-weight:500;
-}
-.btn:hover{background:var(--ink-2)}
-.btn[disabled]{opacity:.45;cursor:not-allowed}
-.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
-.btn.ghost:hover{background:var(--paper-2)}
-.btn.small{padding:4px 9px;font-size:12.5px}
-.btn.wide{width:100%}
-.btn.stamp{background:var(--stamp);border-color:var(--stamp)}
+/* ══ AntiConvocatorIA ══ */
+/* ocho pasos: solo se muestra la etiqueta del paso actual */
+.tb-tools{flex:none}
+.stepper{overflow:hidden}
+.sdot .lbl{display:none}.sdot[data-state="now"] .lbl{display:inline}
+.stepper{justify-content:center;min-width:0}
+@media(max-width:720px){.sdot[data-state="now"] .lbl{display:none}.sline{flex:1 1 4px;min-width:2px}.sdot{padding:4px 2px}.sdot .n{width:26px;height:26px}}
 
-.hint{font-size:12px;color:var(--muted);line-height:1.4}
-.hint code{background:var(--paper-2);padding:0 3px}
-
-/* ---------- phase rail ---------- */
-.phases{list-style:none;margin:0;padding:0;font-size:13px}
-.phases li{display:flex;gap:9px;padding:6px 0;border-bottom:1px dotted var(--rule);align-items:baseline}
-.phases li:last-child{border-bottom:0}
-.phases .n{font-family:var(--serif);font-weight:600;color:var(--muted);min-width:26px}
-.phases .st{margin-left:auto;font-size:11.5px;color:var(--muted)}
-.phases li.done .n{color:var(--green)}
-.phases li.active{font-weight:600}
-.phases li.active .n{color:var(--blue)}
-
-/* ---------- seats ---------- */
-.seats{border-top:1px solid var(--rule)}
-.seat{
-  display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;
-  padding:8px 12px;border-bottom:1px solid var(--rule);background:var(--card);
-}
-.sigil{
-  font-family:var(--serif);font-weight:600;font-size:15px;
-  border:1px solid var(--ink);border-radius:2px;text-align:center;padding:2px 0;
-  background:var(--paper);
-}
-.seat.da .sigil{border-color:var(--stamp);color:var(--stamp)}
-.seat-name{font-size:13px;font-weight:500;line-height:1.25}
-.seat-sub{font-size:11.5px;color:var(--muted)}
-.status{font-size:11.5px;padding:1px 7px;border:1px solid var(--rule);border-radius:2px;white-space:nowrap}
-.status.run{border-color:var(--blue);color:var(--blue);background:var(--blue-soft)}
-.status.ok{border-color:var(--green);color:var(--green)}
-.status.err{border-color:var(--stamp);color:var(--stamp)}
-
-/* ---------- dossier ---------- */
-.dossier{display:flex;flex-direction:column;gap:22px;min-width:0}
-.panelbox{background:var(--card);border:1px solid var(--rule);border-radius:2px}
-.panelbox > header{
-  padding:11px 16px;border-bottom:1px solid var(--ink);
-  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
-}
-.panelbox > header h2{font-family:var(--serif);font-size:22px;font-weight:600;margin:0;line-height:1.15}
-.panelbox > header .meta{font-size:12px;color:var(--muted);margin-left:auto}
-.panelbox .inner{padding:16px}
-
-.prose{font-family:var(--serif);font-size:16.5px;line-height:1.62;max-width:72ch}
-.prose p{margin:0 0 .8em}
-.prose h3{font-family:var(--sans);font-size:13px;font-weight:600;margin:1.5em 0 .4em;color:var(--blue)}
-.prose h4{font-family:var(--sans);font-size:13px;font-weight:600;margin:1.2em 0 .3em}
-.prose ul,.prose ol{margin:0 0 .8em;padding-left:1.2em}
-.prose li{margin-bottom:.3em}
-.prose blockquote{margin:0 0 .8em;padding-left:12px;border-left:2px solid var(--rule);color:var(--muted)}
-.prose code{font-size:.9em;background:var(--paper-2);padding:0 3px}
-.prose table{border-collapse:collapse;width:100%;font-family:var(--sans);font-size:13px;margin:0 0 1em}
-.prose th,.prose td{border:1px solid var(--rule);padding:5px 7px;text-align:left;vertical-align:top}
-.prose th{background:var(--paper-2);font-weight:600}
-
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
-
-/* configuration cards */
-.confcard{border:1px solid var(--rule);border-left:3px solid var(--blue);padding:11px;background:#fff}
-.confcard.da{border-left-color:var(--stamp)}
-.confcard h4{margin:0 0 2px;font-size:14px}
-.confcard .who{font-size:12.5px;color:var(--muted);margin-bottom:6px}
-.confcard textarea{font-size:13px;min-height:64px}
-.confcard ul{margin:6px 0 0;padding-left:1.1em;font-size:13px}
-
-/* findings */
-.finding{border-left:3px solid var(--rule);padding:8px 0 8px 11px;margin:10px 0}
-.finding.critical{border-left-color:var(--stamp)}
-.finding.major{border-left-color:var(--amber)}
-.finding.minor{border-left-color:var(--muted)}
-.finding.strength{border-left-color:var(--green)}
-.finding h5{margin:0 0 4px;font-size:14px;font-family:var(--sans);font-weight:600}
-.finding p{margin:0 0 5px;font-size:14px;line-height:1.5}
-.tag{
-  display:inline-block;font-size:11px;padding:1px 6px;border:1px solid currentColor;
-  border-radius:2px;vertical-align:1px;margin-left:6px;font-weight:500;
-}
-.tag.critical{color:var(--stamp)}
-.tag.major{color:var(--amber)}
-.tag.minor{color:var(--muted)}
-.tag.ok{color:var(--green)}
-.anchor{font-size:12px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-word}
-
-/* judgement table */
-.jt{width:100%;border-collapse:collapse;font-size:12.5px}
-.jt th,.jt td{border:1px solid var(--rule);padding:5px 6px;text-align:left;vertical-align:top}
-.jt th{background:var(--paper-2);font-weight:600}
-.j-EXCEEDS{color:var(--green);font-weight:600}
-.j-MEETS{color:var(--green)}
-.j-PARTLY_MEETS{color:var(--amber);font-weight:600}
-.j-DOES_NOT_MEET{color:var(--stamp);font-weight:600}
-.j-NOT_ASSESSED{color:var(--muted)}
-
-/* decision stamp */
-.decision{
-  border:2px solid var(--ink);padding:18px;background:#fff;
-  display:flex;gap:18px;align-items:center;flex-wrap:wrap;
-}
-.decision .word{font-family:var(--serif);font-size:38px;line-height:1;font-weight:600}
-.decision.reject .word{color:var(--stamp)}
-.decision.major .word{color:var(--amber)}
-.decision.minor .word{color:var(--blue)}
-.decision.accept .word{color:var(--green)}
-.decision .sub{font-size:13px;color:var(--muted);max-width:46ch}
-
-.gate{border:1px solid var(--stamp);background:#fff;padding:10px 12px;font-size:13.5px}
-.gate.clear{border-color:var(--green)}
-.gate b{color:var(--stamp)}
-.gate.clear b{color:var(--green)}
-
-/* roadmap */
-.rm{border:1px solid var(--rule);background:#fff;padding:10px;margin-bottom:9px}
-.rm h5{margin:0 0 4px;font-size:14px}
-.rm .src{font-size:11.5px;color:var(--muted)}
-.rm .triage{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;align-items:center}
-.rm .triage button{
-  border:1px solid var(--rule);background:#fff;padding:3px 8px;font-size:12px;border-radius:2px;
-}
-.rm .triage button.sel{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.rm textarea{margin-top:6px;font-size:13px;min-height:44px}
-
-/* chat */
-.chat{border:1px solid var(--rule);background:#fff;max-height:460px;overflow:auto;padding:12px}
-.msg{margin-bottom:12px;font-size:14.5px;line-height:1.55}
-.msg .who{font-size:11.5px;color:var(--muted);margin-bottom:2px}
-.msg.me{padding-left:20px;border-left:2px solid var(--blue)}
-.msg.coach{font-family:var(--serif);font-size:16px}
-
-/* tabs */
-.tabs{display:flex;gap:0;border-bottom:1px solid var(--rule);flex-wrap:wrap;margin-bottom:14px}
-.tabs button{
-  border:0;border-bottom:2px solid transparent;background:none;padding:7px 12px;
-  font-size:13px;color:var(--muted);
-}
-.tabs button.sel{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
-
-/* misc */
-.warn{border:1px solid var(--amber);background:#FFF8EC;padding:9px 11px;font-size:13px}
-.warn.bad{border-color:var(--stamp);background:#FDF0F3}
-.warn.ok{border-color:var(--green);background:#F0F7F2}
-.empty{padding:40px 20px;text-align:center;color:var(--muted);font-family:var(--serif);font-size:17px}
-.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--blue);border-top-color:transparent;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-1px}
+:root{--teal:#0E7C6B;--sello:#E4572E}
+.idea{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:960px){.idea{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.idea{grid-template-columns:1fr}}
+.idea div{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:16px}
+.idea b{display:block;font-family:var(--display);font-size:17px;margin-bottom:4px}
+.idea span{font-size:13.8px;color:var(--gris);line-height:1.5;display:block}
+.idea .k{font:700 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--brasa);margin-bottom:8px}
+.idea div.yes{border-color:#A9DCCF;background:var(--forjado-suave)}
+.idea div.yes .k{color:var(--forjado)}
+.quote{margin:22px 0 0;font-family:var(--display);font-size:clamp(20px,2.6vw,28px);font-weight:700;letter-spacing:-.02em;color:#fff}
+.quote span{color:var(--brasa)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:0 0 16px}
+.metric{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:14px 16px;box-shadow:var(--sombra)}
+.metric-v{font:800 34px var(--display);letter-spacing:-.03em;line-height:1.05;color:var(--tinta)}
+.metric-v.good{color:var(--forjado)} .metric-v.warn{color:var(--brasa)} .metric-v.mid{color:#B7791F}
+.metric-l{font-weight:700;font-size:14px;margin-top:4px}
+.metric-n{font-size:12.8px;color:var(--gris);margin-top:4px;line-height:1.45}
+.substeps{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.substeps span{font-size:12.5px;font-weight:600;border-radius:999px;padding:5px 11px;background:var(--linea-2);color:var(--gris)}
+.substeps span.on{background:#FFF1D6;color:#8A5A00}
+.substeps span.done{background:var(--forjado-suave);color:var(--forjado)}
+.substeps span.fail{background:var(--brasa-suave);color:var(--brasa)}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
 @keyframes sp{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
-.dropzone{border:1.5px dashed var(--rule);padding:14px;text-align:center;font-size:13px;color:var(--muted);background:#fff}
-.dropzone.over{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
-details{border:1px solid var(--rule);background:#fff;padding:8px 10px}
-details + details{margin-top:8px}
-summary{cursor:pointer;font-size:13px;font-weight:500}
-.kv{font-size:12.5px;width:100%;border-collapse:collapse}
-.kv td{border-bottom:1px dotted var(--rule);padding:4px 2px;vertical-align:top}
-.kv td:first-child{color:var(--muted);width:42%}
-.toast{
-  position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:99;
-  background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:2px;font-size:13.5px;
-  box-shadow:0 4px 18px rgba(15,30,36,.28);
+.heat{border-collapse:separate;border-spacing:3px;font-size:13px;width:100%}
+.heat th{font-size:11.5px;color:var(--gris);font-weight:700;text-align:center;padding:4px;white-space:nowrap}
+.heat th.l,.heat td.l{text-align:left}
+.heat td{text-align:center;border-radius:6px;padding:7px 4px;min-width:34px}
+.heat td.l{padding:6px 8px 6px 0;min-width:170px;font-weight:600}
+.heat td.c0{background:#F3F6FA;color:#B8C5D3}
+.heat td.p{font-weight:800}
+.aband{display:flex;flex-direction:column;gap:6px}
+.aband-row{display:grid;grid-template-columns:minmax(140px,1.2fr) 2fr minmax(150px,1fr);gap:10px;align-items:center;font-size:13.5px}
+.aband-bar{height:10px;background:var(--linea-2);border-radius:6px;overflow:hidden}
+.aband-fill{height:100%;background:var(--brasa);border-radius:6px}
+.aband-n{color:var(--gris);font-size:12.5px}
+@media(max-width:600px){.aband-row{grid-template-columns:1fr}}
+.conv{background:#FBFDFE;border:1.5px solid var(--linea);border-radius:12px;margin-bottom:8px}
+.conv>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;flex-wrap:wrap}
+.conv>summary::-webkit-details-marker{display:none}
+.conv-year{font:700 13px var(--mono);background:var(--tinta);color:#fff;border-radius:7px;padding:3px 9px}
+.conv-meta{font-size:13px;color:var(--gris);flex:1}
+.conv-src{font-size:12px;color:var(--acero-claro);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conv-body{padding:4px 12px 12px}
+.ing{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.ing div{display:flex;gap:10px;font-size:13px;justify-content:space-between;padding:6px 10px;background:var(--papel);border-radius:8px}
+.ing .ok{color:var(--forjado);font-weight:600}.ing .err{color:var(--brasa);font-weight:600}.ing .warn{color:#B7791F;font-weight:600}
+.bp-scroll{overflow-x:auto}
+table.bp{border-collapse:separate;border-spacing:3px;width:100%;font-size:13.5px}
+table.bp th{font-size:12px;color:var(--gris);font-weight:700;padding:4px;text-align:center;white-space:nowrap}
+table.bp th.l{text-align:left}
+table.bp td.tema{font-weight:600;padding-right:8px;min-width:180px}
+table.bp td.cell{padding:0;min-width:64px}
+.bp-in{position:relative;border-radius:8px;display:flex;align-items:center;justify-content:center;height:40px}
+.bp-in input{width:48px;border:0;background:transparent;text-align:center;font:700 14px var(--texto);color:var(--tinta);padding:6px 0}
+.bp-in input:focus{box-shadow:none;background:rgba(255,255,255,.7);border-radius:6px}
+.bp-in.dark input{color:#fff}
+.bp-in.sel{outline:2.5px solid var(--brasa);outline-offset:-2px}
+.bp-hits{position:absolute;top:-7px;right:-5px;background:var(--brasa);color:#fff;border-radius:999px;font:700 10.5px var(--texto);padding:1px 6px}
+.bp-peso{width:64px!important;padding:8px!important;text-align:center;font-weight:700}
+.deuda{display:inline-block;height:8px;border-radius:4px;background:var(--brasa);vertical-align:1px;margin-right:8px}
+.deuda-0{background:var(--linea)}
+.rowsum{font-size:11.5px;color:var(--gris);text-align:center}
+.rowsum.bad{color:var(--brasa);font-weight:700}
+.legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--gris);margin-top:10px}
+.legend-bar{width:90px;height:8px;border-radius:4px;background:linear-gradient(90deg,rgba(14,124,107,.05),rgba(14,124,107,.8))}
+.acta{background:var(--tinta);color:#EAF1F7;border-radius:18px;padding:22px;margin-bottom:16px;box-shadow:var(--sombra-alta);position:relative;overflow:hidden}
+.acta::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(228,87,46,.35),transparent 65%)}
+.acta>*{position:relative;z-index:1}
+.acta h3{font-family:var(--display);font-size:22px;margin:0}
+.acta .sub{font-size:13px;color:#A9C0D4;margin:2px 0 14px}
+.acta dl{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;margin:0;font-size:14px}
+.acta dt{color:#8FA7BE;font-weight:600}
+.acta dd{margin:0;word-break:break-all}
+.acta code{background:#1B3350;color:#9FE3D4;font-size:12.5px}
+@media(max-width:600px){.acta dl{grid-template-columns:1fr}}
+.intentos{margin-top:16px;display:flex;flex-direction:column;gap:6px}
+.intento{display:grid;grid-template-columns:78px 1fr 52px;gap:10px;align-items:center;font-size:12.5px}
+.intento .track{position:relative;height:10px;background:#1E3550;border-radius:6px}
+.intento .fill{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.intento .lim{position:absolute;top:-4px;bottom:-4px;width:2px;background:#F5BF4F}
+.intento .exp{position:absolute;top:-4px;bottom:-4px;width:2px;background:#8FA7BE}
+.intento .v{text-align:right;font-weight:700}
+.tagx{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--linea-2);color:var(--acero);margin:1px 2px}
+.tagx.t{background:var(--forjado-suave);color:var(--forjado)}
+.tagx.a{background:var(--brasa-suave);color:var(--brasa)}
+.paper{background:#fff;border:1px solid var(--linea);border-radius:18px;box-shadow:var(--sombra-alta);padding:34px 38px;max-width:880px;margin:0 auto}
+@media(max-width:700px){.paper{padding:20px 16px}}
+.paper-head{border-bottom:3px solid var(--tinta);padding-bottom:14px;margin-bottom:16px}
+.paper-head h3{font-family:var(--display);font-size:28px;margin:0 0 4px;letter-spacing:-.02em}
+.paper-head .pm{font-size:13.5px;color:var(--gris)}
+.q{padding:14px 0;border-bottom:1px solid var(--linea-2)}
+.q:last-child{border-bottom:0}
+.q-top{display:flex;gap:10px}
+.q-n{font:800 16px var(--display);flex:none;min-width:24px}
+.q-text{white-space:pre-wrap;flex:1}
+.q-pts{flex:none;font-size:12.5px;color:var(--gris);white-space:nowrap}
+.opts{margin:8px 0 0 34px;display:flex;flex-direction:column;gap:4px;font-size:14.5px}
+.opts .ok{color:var(--forjado);font-weight:700}
+.q-meta{margin:10px 0 0 34px}
+.variantes{margin:10px 0 0 34px;background:var(--papel);border-radius:10px;padding:10px 12px;font-size:13.5px}
+.variantes .vt{font-weight:700;color:var(--acero);margin-bottom:4px;font-size:12.5px}
+.variantes .vi{padding:5px 0;border-top:1px dashed var(--linea)}
+.variantes .vi:first-of-type{border-top:0}
+.crit{margin:8px 0 0 34px;font-size:13.5px;border-left:3px solid var(--forjado);padding:6px 10px;background:var(--forjado-suave);border-radius:0 8px 8px 0}
+.carta{background:#fff;border:1px solid var(--linea);border-radius:18px;box-shadow:var(--sombra-alta);padding:34px 40px;max-width:760px;margin:0 auto;font-size:16.5px;line-height:1.65}
+.carta p{margin:0 0 14px}
+@media(max-width:700px){.carta{padding:22px 18px}}
+.pubbox{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;justify-content:center}
+.stale{background:#FFF8E6;border:1px solid #F3DDA0;color:#6B4E00;border-radius:12px;padding:11px 15px;font-size:14px;margin-bottom:14px}
+.verify-ok{background:var(--forjado-suave);color:#0B5A4E;border-radius:12px;padding:12px 14px;font-weight:600}
+.verify-ko{background:var(--brasa-suave);color:var(--aviso);border-radius:12px;padding:12px 14px;font-weight:600}
+.keyhide{font-family:var(--mono);letter-spacing:.1em}
+@media print{
+  .noprint,.acta .intentos{display:none!important}
+  .screen.on{display:block!important}
+  .paper,.carta{box-shadow:none;border:0;padding:0}
 }
-.modal-bg{position:fixed;inset:0;background:rgba(15,30,36,.55);z-index:80;display:flex;align-items:center;justify-content:center;padding:18px}
-.modal{background:var(--card);border:1px solid var(--ink);max-width:640px;width:100%;max-height:88vh;overflow:auto}
-.modal header{padding:11px 15px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center}
-.modal header h3{margin:0;font-family:var(--serif);font-size:19px}
-.modal .mbody{padding:15px}
-.modal .mbody > * + *{margin-top:11px}
-.chip{display:inline-block;font-size:11.5px;border:1px solid var(--rule);padding:1px 7px;border-radius:9px;margin:2px 4px 2px 0;background:#fff}
 </style>
 </head>
 <body>
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8M13 12h8M13 18h8"/></symbol>
+  <symbol id="i-cards" viewBox="0 0 24 24"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 3v4M17 5h4M5 17v4M3 19h4"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></symbol>
+  <symbol id="i-form" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-tablet" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7M9 11h5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M7 21h10M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></symbol>
+</svg>
 
-<header class="masthead">
-  <div class="masthead-in">
-    <h1 class="wordmark">Arbitr<span>IA</span></h1>
-    <p class="tagline">Panel de revisión por pares con cinco asientos separados por rol, decisión editorial y hoja de ruta de revisión.</p>
-    <div class="masthead-actions">
-      <button class="btn ghost small" id="btnHistory">Historial</button>
-      <button class="btn ghost small" id="btnAbout">Qué hace</button>
+<div class="topbar">
+  <div class="tb-in">
+    <button class="logo" id="goHome" type="button" aria-label="Ir al inicio"><span class="anv"><svg class="i"><use href="#i-scale"/></svg></span><span>Arbitr<em>IA</em></span></button>
+    <nav class="stepper" id="stepper" aria-label="Pasos"></nav>
+    <div class="tb-tools">
+      <button class="tb-btn" id="btnHistory" type="button"><svg class="i"><use href="#i-archive"/></svg><span class="lbl">Mis revisiones</span></button>
+      <button class="tb-btn" id="btnAbout" type="button"><svg class="i"><use href="#i-help"/></svg><span class="lbl">Cómo funciona</span></button>
     </div>
   </div>
-</header>
-
-<div class="shell">
-  <!-- ============ RAIL ============ -->
-  <aside class="rail">
-
-    <section class="block">
-      <h2>Acceso a la API <span id="keyState" class="hint"></span></h2>
-      <div class="block-body">
-        <div>
-          <label class="field" for="apiKey">Clave de OpenAI</label>
-          <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
-        </div>
-        <div class="row">
-          <button class="btn small" id="saveKey">Guardar clave</button>
-          <button class="btn ghost small" id="clearKey">Borrar</button>
-        </div>
-        <p class="hint">La clave se guarda solo en este navegador (<code>localStorage</code>). El manuscrito se envía a la API de OpenAI desde tu equipo; no pasa por ningún servidor intermedio.</p>
-      </div>
-    </section>
-
-    <section class="block">
-      <h2>Configuración del panel</h2>
-      <div class="block-body">
-        <div>
-          <label class="field" for="mode">Modo de revisión</label>
-          <select id="mode">
-            <option value="full">Completa — 5 asientos + decisión</option>
-            <option value="quick">Rápida — encaje + problemas clave</option>
-            <option value="methodology">Foco metodológico — 2 asientos</option>
-            <option value="guided">Guiada — completa + mayéutica</option>
-            <option value="rereview">Re-revisión — verificar cambios</option>
-          </select>
-        </div>
-        <div>
-          <label class="field" for="model">Modelo base de los revisores</label>
-          <select id="model"></select>
-        </div>
-        <div class="row">
-          <div>
-            <label class="field" for="effort">Esfuerzo de razonamiento</label>
-            <select id="effort">
-              <option value="none">ninguno</option>
-              <option value="low">bajo</option>
-              <option value="medium" selected>medio</option>
-              <option value="high">alto</option>
-              <option value="xhigh">muy alto</option>
-            </select>
-          </div>
-          <div>
-            <label class="field" for="lang">Idioma del informe</label>
-            <select id="lang">
-              <option value="auto">Según el manuscrito</option>
-              <option value="es">Español</option>
-              <option value="en">Inglés</option>
-            </select>
-          </div>
-        </div>
-        <details>
-          <summary>Escalonado por rol y pista cross-model</summary>
-          <div style="margin-top:9px">
-            <label class="field" for="mAnalyst">Analista de campo (Fase 0)</label>
-            <select id="mAnalyst" class="modelsel"></select>
-            <label class="field" for="mSynth" style="margin-top:8px">Sintetizador editorial (Fase 2)</label>
-            <select id="mSynth" class="modelsel"></select>
-            <label style="display:flex;gap:7px;align-items:flex-start;margin-top:10px;font-size:13px">
-              <input type="checkbox" id="crossModel" style="width:auto;margin-top:3px">
-              <span>Ejecutar el Revisor 2 en otro modelo de la familia (pista cross-model). El manuscrito se envía igualmente a OpenAI: el proveedor sigue siendo el mismo, así que la divulgación de error correlacionado se mantiene.</span>
-            </label>
-            <select id="mR2" class="modelsel" style="margin-top:6px"></select>
-          </div>
-        </details>
-        <div>
-          <label class="field" for="human">Persona responsable del panel (queda en la procedencia)</label>
-          <input type="text" id="human" placeholder="Nombre y afiliación">
-        </div>
-      </div>
-    </section>
-
-    <section class="block">
-      <h2>Manuscrito <span class="hint" id="mLen"></span></h2>
-      <div class="block-body">
-        <div class="row">
-          <div>
-            <label class="field" for="title">Título</label>
-            <input type="text" id="title" placeholder="Título del manuscrito">
-          </div>
-        </div>
-        <div>
-          <label class="field" for="venue">Revista objetivo (si la hay)</label>
-          <input type="text" id="venue" placeholder="Revista / track / tipo de artículo">
-        </div>
-        <div class="dropzone" id="drop">
-          Arrastra aquí un PDF, DOCX, TXT o MD, o
-          <button class="btn ghost small" id="pickFile" style="margin-left:4px">elige un archivo</button>
-          <input type="file" id="file" accept=".pdf,.docx,.txt,.md" hidden>
-        </div>
-        <div>
-          <label class="field" for="manuscript">Texto del manuscrito</label>
-          <textarea id="manuscript" rows="7" placeholder="Pega aquí el manuscrito completo..."></textarea>
-        </div>
-        <div id="injectionFlag"></div>
-      </div>
-    </section>
-
-    <section class="block" id="rereviewBlock" hidden>
-      <h2>Entradas de la re-revisión</h2>
-      <div class="block-body">
-        <p class="hint">La re-revisión exige la hoja de ruta original inmutable, el borrador previo, el manuscrito revisado y el paquete de evidencias. La carta de respuesta se revela solo en la puerta 2B.</p>
-        <div>
-          <label class="field" for="rmJson">Hoja de ruta original (JSON exportado por ArbitrIA)</label>
-          <textarea id="rmJson" rows="3" placeholder='{"roadmap":[...]}'></textarea>
-        </div>
-        <div>
-          <label class="field" for="revised">Manuscrito revisado</label>
-          <textarea id="revised" rows="4" placeholder="Texto de la versión revisada..."></textarea>
-        </div>
-        <div>
-          <label class="field" for="responseLetter">Carta de respuesta a los revisores (opcional)</label>
-          <textarea id="responseLetter" rows="3" placeholder="Se mantiene oculta hasta la puerta 2B..."></textarea>
-        </div>
-      </div>
-    </section>
-
-    <section class="block">
-      <h2>Fases</h2>
-      <div class="block-body" style="padding:8px 12px">
-        <ul class="phases" id="phaseList"></ul>
-      </div>
-      <div class="seats" id="seatList"></div>
-      <div class="block-body">
-        <button class="btn wide" id="btnRun">Analizar el campo y configurar el panel</button>
-        <div id="usageBox" class="hint"></div>
-      </div>
-    </section>
-
-  </aside>
-
-  <!-- ============ DOSSIER ============ -->
-  <main class="dossier" id="dossier">
-    <div class="panelbox">
-      <div class="empty">
-        Pega o carga un manuscrito, guarda tu clave y pulsa <b>Analizar el campo</b>.<br>
-        ArbitrIA leerá el trabajo, propondrá cuatro identidades revisoras que podrás editar y luego ejecutará el panel.
-      </div>
-    </div>
-  </main>
+  <div class="progress"><span id="progBar"></span></div>
 </div>
 
-<div id="modalHost"></div>
-<div id="toastHost"></div>
+<main id="app">
+<!-- ═════ 0 · INICIO ═════ -->
+<section class="screen" data-step="0">
+  <div class="hero">
+    <p class="eyebrow">Revisión por pares simulada · para ensayar antes de enviar · Universidad Miguel Hernández de Elche</p>
+    <h1>Somete tu artículo <em>a un tribunal antes que a la revista</em></h1>
+    <p class="lede">Cinco revisores de IA con papeles distintos leen tu manuscrito sin ver lo que dicen los demás. Un editor reúne sus informes, decide y te entrega una carta de decisión y una hoja de ruta con los cambios que pedirían. Si luego revisas el trabajo, ArbitrIA comprueba si has atendido cada comentario.</p>
+    <div class="actions">
+      <button class="btn btn-primary btn-big" id="btnStart" type="button"><svg class="i"><use href="#i-play"/></svg>Revisar mi manuscrito</button>
+      <button class="btn btn-ghost btn-big" id="btnDemo" type="button"><svg class="i"><use href="#i-eye"/></svg>Ver una revisión completa</button>
+    </div>
+    <p class="quote">Un ensayo general, <span>no una predicción de lo que dirá la revista.</span></p>
+  </div>
+  <h2 class="sec-title">El panel</h2>
+  <p class="sec-sub">Cada revisor mira el trabajo desde un ángulo distinto. Antes de empezar, un analista lee el manuscrito y les da un perfil concreto, que puedes editar.</p>
+  <div class="agentes">
+    <div class="ag" style="--c:#1F6FB2"><span class="kind">encaje</span><span class="pi"><svg class="i"><use href="#i-target"/></svg></span><b>Revisor de encaje</b><span>¿Encaja en la revista? Originalidad, relevancia y público lector.</span></div>
+    <div class="ag" style="--c:#0E8C7A"><span class="kind">revisor 1</span><span class="pi"><svg class="i"><use href="#i-scale"/></svg></span><b>Metodología</b><span>Diseño, estadística, validez y reproducibilidad.</span></div>
+    <div class="ag" style="--c:#6B4FD8"><span class="kind">revisor 2</span><span class="pi"><svg class="i"><use href="#i-book"/></svg></span><b>Dominio</b><span>Literatura, marco teórico y aportación real al campo.</span></div>
+    <div class="ag" style="--c:#C98200"><span class="kind">revisor 3</span><span class="pi"><svg class="i"><use href="#i-globe"/></svg></span><b>Perspectiva</b><span>Otras disciplinas, impacto práctico y supuestos no discutidos.</span></div>
+    <div class="ag" style="--c:#E4572E"><span class="kind">abogado del diablo</span><span class="pi"><svg class="i"><use href="#i-flame"/></svg></span><b>Contraargumento</b><span>El ataque más fuerte y honesto al argumento central.</span></div>
+    <div class="ag det" style="--c:#0F2237"><span class="kind">editor</span><span class="pi"><svg class="i"><use href="#i-doc"/></svg></span><b>Síntesis y decisión</b><span>Consenso, desacuerdos, carta de decisión y hoja de ruta. No puede inventar comentarios.</span></div>
+  </div>
+  <h2 class="sec-title">Reglas que lo hacen fiable</h2>
+  <div class="idea" style="grid-template-columns:repeat(3,1fr)">
+    <div><p class="k">Ciegos entre sí</p><b>Nadie ve los otros informes</b><span>Así las coincidencias cuentan de verdad y los desacuerdos no se diluyen.</span></div>
+    <div><p class="k">Todo con prueba</p><b>Cada crítica, anclada</b><span>Los problemas graves citan el pasaje, la tabla o la ausencia concreta. Sin eso, se convierten en pregunta.</span></div>
+    <div><p class="k">Nada de notas</p><b>Criterios, no puntos</b><span>No hay puntuación ni probabilidad de aceptación: solo si cada criterio se cumple y por qué.</span></div>
+  </div>
+  <div class="aviso" style="margin-top:18px"><b>Honestidad de método.</b> Cinco papeles en un mismo modelo no son cinco revisores independientes: comparten sesgos, y el consenso puede amplificar un error. Úsalo para anticipar críticas y mejorar el trabajo, nunca como sustituto de la revisión real.</div>
+</section>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<!-- ═════ 1 · MANUSCRITO ═════ -->
+<section class="screen" data-step="1">
+  <header class="sh" style="--c:#1F6FB2"><div class="sh-ico"><svg class="i"><use href="#i-doc"/></svg></div>
+    <div><p class="sh-step">Paso 1 de 4</p><h2>Tu manuscrito</h2><p class="sh-lede">Elige qué tipo de revisión quieres y carga el texto completo. El manuscrito se lee en tu navegador y solo viaja a OpenAI.</p></div></header>
+  <div class="card">
+    <h3><span class="num">1</span>Qué revisión</h3>
+    <div class="modos" id="modos"></div>
+    <select id="mode" hidden><option value="full">full</option><option value="quick">quick</option><option value="methodology">methodology</option><option value="guided">guided</option><option value="rereview">rereview</option></select>
+  </div>
+  <div class="cols">
+    <div>
+      <div class="card">
+        <h3><span class="num">2</span>El texto</h3>
+        <div class="grid2" style="margin-bottom:10px"><div class="field" style="margin:0"><label for="title">Título</label><input type="text" id="title" placeholder="Se rellena solo al cargar el archivo"></div><div class="field" style="margin:0"><label for="venue">Revista a la que piensas enviarlo <small>(opcional)</small></label><input type="text" id="venue" placeholder="Gaceta Sanitaria"></div></div>
+        <label class="drop" id="drop" tabindex="0"><svg class="i"><use href="#i-upload"/></svg><b>Arrastra aquí el PDF, el Word o el texto</b><span>o <button type="button" class="btn btn-ghost btn-sm" id="pickFile" style="display:inline-flex;margin-left:4px">elige un archivo</button></span><input type="file" id="file" accept=".pdf,.docx,.txt,.md" hidden></label>
+        <div class="field" style="margin:12px 0 0"><label for="manuscript">Texto del manuscrito <small id="mLen"></small></label><textarea id="manuscript" placeholder="…o pega aquí el texto completo, con resumen, métodos, resultados y referencias."></textarea></div>
+        <div id="injectionFlag" style="margin-top:8px"></div>
+        <p class="sublab">¿Sin manuscrito a mano? Prueba con uno de estos</p>
+        <div class="ejs" id="ejs"></div>
+      </div>
+      <div class="card hidden" id="rereviewBlock">
+        <h3><span class="num">3</span>La versión revisada</h3>
+        <p class="sub">Para la re-revisión: en el recuadro de arriba va el <b>borrador anterior</b>; aquí, la hoja de ruta que exportaste de ArbitrIA y la versión nueva. La carta de respuesta solo se mira al final, para que no influya en el veredicto.</p>
+        <div class="field"><label for="rmJson">Hoja de ruta original (el JSON que exportaste)</label><textarea id="rmJson" style="min-height:90px;font-family:var(--mono);font-size:12.5px" placeholder='{"roadmap":[…]}'></textarea></div>
+        <div class="field"><label for="revised">Manuscrito revisado</label><textarea id="revised" style="min-height:140px"></textarea></div>
+        <div class="field" style="margin:0"><label for="responseLetter">Carta de respuesta a los revisores <small>(opcional)</small></label><textarea id="responseLetter" style="min-height:80px"></textarea></div>
+      </div>
+    </div>
+    <aside>
+      <div class="card sticky">
+        <h3><svg class="i"><use href="#i-key"/></svg>Clave de OpenAI</h3>
+        <div class="keyrow"><input type="password" id="apiKey" placeholder="sk-proj-…" autocomplete="off" spellcheck="false"><button class="eye" id="btnEye" type="button" aria-label="Mostrar u ocultar"><svg class="i"><use href="#i-eye"/></svg></button></div>
+        <div class="actions" style="margin-top:10px"><button class="btn btn-dark btn-sm" id="saveKey" type="button">Guardar</button><button class="btn btn-ghost btn-sm" id="clearKey" type="button">Borrar</button><span class="help" id="keyState" style="margin:0"></span></div>
+        <div class="field" style="margin-top:12px"><label for="lang">Idioma del informe</label><select id="lang"><option value="auto">El del manuscrito</option><option value="es">Español</option><option value="en">Inglés</option></select></div>
+        <details class="acc" style="margin:0"><summary><span class="ai"><svg class="i"><use href="#i-sliders"/></svg></span><span><b>Ajustes avanzados</b><small>Modelos, razonamiento y responsable</small></span><svg class="i chev"><use href="#i-down"/></svg></summary>
+          <div class="inner">
+            <div class="field"><label for="model">Modelo de los revisores</label><select id="model"></select></div>
+            <div class="field"><label for="mAnalyst">Analista del campo (paso 2)</label><select id="mAnalyst" class="modelsel"></select></div>
+            <div class="field"><label for="mSynth">Editor que decide</label><select id="mSynth" class="modelsel"></select></div>
+            <div class="field"><label for="effort">Esfuerzo de razonamiento</label><select id="effort"><option value="default">el del modelo</option><option value="low">bajo</option><option value="medium">medio</option><option value="high">alto</option></select></div>
+            <label style="display:flex;gap:8px;font-size:13.5px;margin:0 0 6px"><input type="checkbox" id="crossModel"> El revisor 2 usa otro modelo</label>
+            <div class="field"><label for="mR2">Modelo del revisor 2</label><select id="mR2" class="modelsel"></select><p class="help">Reduce algo el error compartido entre revisores, pero el proveedor sigue siendo el mismo.</p></div>
+            <div class="field" style="margin:0"><label for="human">Persona responsable de la revisión <small>(queda en el informe)</small></label><input type="text" id="human" placeholder="Nombre y apellidos"></div>
+          </div></details>
+        <p class="help" style="margin-top:10px">Con los modelos por defecto, una revisión completa cuesta unos céntimos.</p>
+      </div>
+    </aside>
+  </div>
+  <div class="hidden"><button id="btnRun" type="button"></button><div id="dossier"></div></div>
+</section>
+
+<!-- ═════ 2 · PANEL ═════ -->
+<section class="screen" data-step="2">
+  <header class="sh" style="--c:#6B4FD8"><div class="sh-ico"><svg class="i"><use href="#i-users"/></svg></div>
+    <div><p class="sh-step">Paso 2 de 4</p><h2>El panel</h2><p class="sh-lede">Un analista ha leído el trabajo y propone quién lo revisa. Ajusta los perfiles si conoces mejor tu campo y confirma para que empiece la revisión.</p></div></header>
+  <div class="card" style="padding:12px 16px"><ul id="phaseList"></ul><div id="usageBox"></div></div>
+  <div id="dosConfig"></div>
+</section>
+
+<!-- ═════ 3 · INFORMES ═════ -->
+<section class="screen" data-step="3">
+  <header class="sh" style="--c:#0E8C7A"><div class="sh-ico"><svg class="i"><use href="#i-grid"/></svg></div>
+    <div><p class="sh-step">Paso 3 de 4</p><h2>Los informes</h2><p class="sh-lede">Cada revisor trabaja por separado. Cuando terminan todos, el editor reúne los informes y decide.</p></div></header>
+  <div class="seats" id="seatList"></div>
+  <div id="dosReports"></div>
+</section>
+
+<!-- ═════ 4 · DECISIÓN ═════ -->
+<section class="screen" data-step="4">
+  <header class="sh" style="--c:#E4572E"><div class="sh-ico"><svg class="i"><use href="#i-doc"/></svg></div>
+    <div><p class="sh-step">Paso 4 de 4</p><h2 id="decTitle">La decisión</h2><p class="sh-lede" id="decLede">Carta del editor, en qué coinciden y discrepan los revisores, y la hoja de ruta con los cambios. Marca qué vas a atender: tu decisión se guarda aparte.</p></div></header>
+  <div id="dosDecision"><p class="empty">Aún no hay decisión.</p></div>
+</section>
+</main>
+
+<footer><hr><p>ArbitrIA · Fernando Borrás Rocher · Universidad Miguel Hernández de Elche. Reproduce en el navegador el procedimiento del skill <i>academic-paper-reviewer</i> de Cheng-I Wu. Es un simulacro para ensayar antes de enviar, nunca un sustituto de la revisión real: todas las voces del panel comparten modelo y proveedor.</p></footer>
+
+<div class="bottomnav"><div class="bn-in">
+  <button class="btn btn-ghost" id="navBack" type="button"><svg class="i"><use href="#i-left"/></svg>Atrás</button>
+  <div class="bn-hint" id="navHint"></div>
+  <button class="btn btn-primary" id="navNext" type="button"><span id="navNextTxt">Siguiente</span><svg class="i"><use href="#i-right"/></svg></button>
+</div></div>
+<div id="toastHost"></div><div id="modalHost"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
+"use strict";
+
 /* =========================================================================
    ArbitrIA — panel de revisión por pares
    Reproduce el skill academic-paper-reviewer v1.11.1 (Cheng-I Wu, MIT-style
@@ -528,11 +856,7 @@ const el = (tag, cls, html) => { const n=document.createElement(tag); if(cls) n.
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nowISO = () => new Date().toISOString();
 
-function toast(msg, ms){
-  const t = el('div','toast', esc(msg));
-  $('#toastHost').appendChild(t);
-  setTimeout(()=>t.remove(), ms||3000);
-}
+function toast(msg, ms){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), ms || 3200); }
 
 function md(text){
   if(!text) return '';
@@ -799,11 +1123,13 @@ async function extractFile(file){
   const name = file.name.toLowerCase();
   if(name.endsWith('.txt') || name.endsWith('.md')) return await file.text();
   if(name.endsWith('.docx')){
+    if(!window.mammoth) await cargaLib(['https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js','https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js']);
     const buf = await file.arrayBuffer();
     const res = await window.mammoth.extractRawText({arrayBuffer:buf});
     return res.value;
   }
   if(name.endsWith('.pdf')){
+    if(!window.pdfjsLib) await cargaLib(['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js']);
     const lib = window.pdfjsLib;
     lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     const buf = await file.arrayBuffer();
@@ -1106,6 +1432,8 @@ function promptRRGate3(verdicts, letter){
   return {sys, user};
 }
 function deriveRRDecision(verdicts){
+  if(!verdicts || !verdicts.length)
+    return {decision:'user_review_required', why:'El verificador no devolvió ningún veredicto: no se puede dar por atendida la hoja de ruta. Decide una persona.'};
   const v = verdicts.map(x=>x.verdict);
   const n = t => v.filter(x=>x===t).length;
   if(n('CANNOT_VERIFY') > 0)
@@ -1342,21 +1670,12 @@ function box(title, meta, innerHTML){
 
 function renderAll(){
   renderPhases(); renderSeats(); renderUsage();
-  if(S.mode !== 'rereview')
-    $('#btnRun').textContent = S.phase0 ? 'Volver a analizar el campo' : 'Analizar el campo y configurar el panel';
-  const d = $('#dossier'); d.innerHTML = '';
-
-  if(S.mode === 'rereview'){ renderRereview(d); return; }
-
-  if(!S.phase0){
-    d.appendChild(box('Sin manuscrito en curso','', 
-      '<div class="empty">Pega o carga un manuscrito, guarda tu clave y pulsa <b>Analizar el campo</b>.<br>' +
-      'ArbitrIA leerá el trabajo, propondrá cuatro identidades revisoras que podrás editar y luego ejecutará el panel.</div>'));
-    return;
-  }
-  renderConfig(d);
-  if(Object.keys(S.seats).some(k=>SEAT_DEFS[k])) renderReports(d);
-  if(S.synth){ renderDecision(d); renderRoadmap(d); renderCoach(d); }
+  const c2 = $('#dosConfig'), c3 = $('#dosReports'), c4 = $('#dosDecision');
+  c2.innerHTML = ''; c3.innerHTML = ''; c4.innerHTML = '';
+  if(S.mode === 'rereview'){ renderRereview(c4); return; }
+  if(S.phase0) renderConfig(c2); else c2.innerHTML = '<p class="empty">Aún no se ha analizado ningún manuscrito.</p>';
+  if(Object.keys(S.seats).some(k => SEAT_DEFS[k])) renderReports(c3); else c3.innerHTML = '<p class="empty">Los informes aparecerán aquí.</p>';
+  if(S.synth){ renderDecision(c4); renderRoadmap(c4); renderCoach(c4); } else c4.innerHTML = '<p class="empty">Aún no hay decisión.</p>';
 }
 
 /* ---------- Fase 0 ---------- */
@@ -1379,7 +1698,7 @@ function renderConfig(d){
   const cards = (S.cards||[]).map((c,i)=>
     '<div class="confcard" data-i="' + i + '">' +
       '<h4>' + esc(c.display || SEAT_DEFS[c.role] && SEAT_DEFS[c.role].name || c.role) + ' <span class="chip">' + esc(c.role) + '</span></h4>' +
-      '<div class="who">Identidad configurada — editable antes de ejecutar</div>' +
+      '<div class="who">Perfil propuesto · puedes editarlo</div>' +
       '<textarea data-k="identity">' + esc(c.identity) + '</textarea>' +
       '<div style="margin-top:7px"><label class="field">Focos de revisión (uno por línea)</label>' +
       '<textarea data-k="focus">' + esc((c.focus||[]).join('\n')) + '</textarea></div>' +
@@ -1390,30 +1709,30 @@ function renderConfig(d){
     '</div>').join('');
 
   const daCard = '<div class="confcard da"><h4>Abogado del diablo <span class="chip">DA</span></h4>' +
-    '<div class="who">Asiento fijo. No recibe tarjeta de configuración ni emite voto en la matriz de decisión.</div>' +
-    '<p style="font-size:13px;margin:6px 0 0">Somete a prueba el argumento central en ocho registros y sus problemas CRITICAL obligan a una adjudicación visible en la decisión editorial.</p></div>';
+    '<div class="who">Siempre presente. No vota la decisión: pone a prueba el argumento.</div>' +
+    '<p style="font-size:13px;margin:6px 0 0">Busca el contraargumento más fuerte, datos elegidos a conveniencia, saltos lógicos y explicaciones alternativas. Si encuentra un problema crítico, el editor tiene que pronunciarse sobre él.</p></div>';
 
   const seats = seatsForMode(S.mode);
   const showDA = seats.includes('DA');
 
   const html =
     '<div class="grid2">' +
-      '<div><h3 style="font-family:var(--sans);font-size:13px;color:var(--blue);margin:0 0 6px">Análisis de campo</h3>' +
+      '<div><h3 style="font-family:var(--texto);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--acero-claro);margin:0 0 6px">Cómo lo ha leído el analista</h3>' +
         '<table class="kv">' + rows + '</table></div>' +
-      '<div><h3 style="font-family:var(--sans);font-size:13px;color:var(--blue);margin:0 0 6px">Revistas sugeridas</h3>' +
+      '<div><h3 style="font-family:var(--texto);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--acero-claro);margin:0 0 6px">Revistas que encajarían</h3>' +
         '<ul style="font-size:13.5px;margin:0;padding-left:1.1em">' + (journals||'<li>Sin recomendación</li>') + '</ul>' +
         (S.phase0.strategy ? '<p class="hint" style="margin-top:9px">' + esc(S.phase0.strategy) + '</p>' : '') +
       '</div>' +
     '</div>' +
-    '<h3 style="font-family:var(--sans);font-size:13px;color:var(--blue);margin:18px 0 8px">Tarjetas de configuración del panel · modo ' + esc(S.mode) + ' · ' + seats.length + ' asiento(s)</h3>' +
+    '<h3 style="font-family:var(--texto);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--acero-claro);margin:18px 0 8px">Perfiles de los revisores · ' + seats.length + ' revisor(es)</h3>' +
     '<div class="grid2" id="cardGrid">' + cards + (showDA ? daCard : '') + '</div>' +
     '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">' +
-      '<button class="btn" id="btnPanel">' + (S.synth ? 'Volver a ejecutar el panel' : 'Confirmar el panel y revisar') + '</button>' +
-      '<button class="btn ghost" id="btnRecfg">Reconfigurar desde cero</button>' +
+      '<button class="btn" id="btnPanel">' + (S.synth ? 'Volver a ejecutar el panel' : 'Confirmar y empezar la revisión') + '</button>' +
+      '<button class="btn ghost" id="btnRecfg">Volver a proponer el panel</button>' +
     '</div>' +
-    '<p class="hint" style="margin-top:8px">Punto de control 1: puedes ajustar las identidades antes de ejecutar. Los cinco asientos se comprometen sin ver los informes de los demás (regla de hierro nº 2); la separación de roles no es independencia estadística.</p>';
+    '<p class="hint" style="margin-top:8px">Puedes ajustar los perfiles antes de empezar. Cada revisor trabaja sin ver los informes de los demás; aun así, comparten modelo, así que no son revisores independientes.</p>';
 
-  const b = box('Configuración del panel', esc(p.title||''), html);
+  const b = box('Quién revisa tu trabajo', esc(p.title||''), html);
   d.appendChild(b);
 
   b.querySelectorAll('.confcard[data-i] textarea').forEach(t=>{
@@ -1443,7 +1762,7 @@ function renderReports(d){
       SEAT_DEFS[k].name.replace(/^Revisor \d+ · /,'') + badge + '</button>';
   }).join('') + '</div>';
 
-  const b = box('Informes del panel', seats.length + ' de ' + seatsForMode(S.mode).length + ' asientos', tabs + '<div id="reportBody"></div>');
+  const b = box('Informes de los revisores', seats.length + ' de ' + seatsForMode(S.mode).length, tabs + '<div id="reportBody"></div>');
   d.appendChild(b);
   b.querySelectorAll('.tabs button').forEach(btn=>{
     btn.onclick = () => { activeTab = btn.dataset.t; renderAll(); };
@@ -1462,7 +1781,7 @@ function renderReviewer(r){
 
   const wk = (r.weaknesses||[]).map(w =>
     '<div class="finding ' + sev(w.severity) + '"><h5>' + esc(w.id) + ' · ' + esc(w.title) +
-      '<span class="tag ' + sev(w.severity) + '">' + esc(w.severity) + '</span></h5>' +
+      '<span class="tag ' + sev(w.severity) + '">' + esc(tr(w.severity)) + '</span></h5>' +
     '<p><b>Problema.</b> ' + esc(w.problem) + '</p>' +
     '<p><b>Por qué importa.</b> ' + esc(w.why) + '</p>' +
     '<p><b>Sugerencia.</b> ' + esc(w.suggestion) + '</p>' +
@@ -1471,7 +1790,7 @@ function renderReviewer(r){
     '<p class="hint">Sin debilidades registradas. Véase el recibo de cobertura.</p>';
 
   const cr = r.coverage_receipt && r.coverage_receipt.rows && r.coverage_receipt.rows.length
-    ? '<h3>Recibo de cobertura — ' + esc(r.coverage_receipt.covers) + '</h3><table class="jt"><tr><th>Dimensión examinada</th><th>Qué se comprobó</th><th>Base para no registrar nada</th></tr>' +
+    ? '<h3>Qué revisó aunque no encontrara nada — ' + esc(tr(r.coverage_receipt.covers)) + '</h3><table class="jt"><tr><th>Aspecto</th><th>Qué comprobó</th><th>Por qué no hay hallazgo</th></tr>' +
       r.coverage_receipt.rows.map(x=>'<tr><td>'+esc(x.dimension)+'</td><td>'+esc(x.checked)+'</td><td>'+esc(x.basis)+'</td></tr>').join('') + '</table>'
     : '';
 
@@ -1484,18 +1803,18 @@ function renderReviewer(r){
     '<h4>' + miKeys[k] + '</h4><ul>' + mi[k].map(x=>'<li>'+esc(x)+'</li>').join('') + '</ul>').join('') ||
     '<p class="hint">Sin erratas registradas.</p>';
 
-  const jt = '<table class="jt"><tr><th>Dimensión</th><th>Fuente del criterio</th><th>Juicio</th><th>Ancla</th><th>Razonamiento</th><th>Incertidumbre</th><th>¿Decisivo?</th></tr>' +
+  const jt = '<table class="jt"><tr><th>Criterio</th><th>De dónde sale</th><th>Juicio</th><th>Prueba</th><th>Razonamiento</th><th>Incertidumbre</th><th>¿Pesa en la decisión?</th></tr>' +
     (r.judgements||[]).map(j =>
       '<tr><td>' + esc(j.dimension) + '</td><td>' + esc(j.criterion_source) + '</td>' +
-      '<td class="j-' + esc(String(j.judgement||'').replace(/\s/g,'_')) + '">' + esc(j.judgement) + '</td>' +
+      '<td class="j-' + esc(String(j.judgement||'').replace(/\s/g,'_')) + '">' + esc(tr(j.judgement)) + '</td>' +
       '<td class="anchor">' + esc(j.anchors) + '</td><td>' + esc(j.rationale) + '</td>' +
       '<td>' + esc(j.uncertainty) + '</td><td>' + esc(j.decision_bearing) + '</td></tr>').join('') + '</table>';
 
   const pv = r._provenance || {};
   return '<div class="prose">' +
     '<div class="decision ' + String(r.recommendation||'').toLowerCase().split(' ')[0] + '" style="border-width:1px;padding:12px">' +
-      '<div><div class="hint">Recomendación de este asiento</div><div class="word" style="font-size:26px">' + esc(r.recommendation) + '</div></div>' +
-      '<div class="sub">Confianza ' + esc(r.confidence) + '/5 — declaración de alcance, no un peso: no altera el consenso ni la severidad.<br>' +
+      '<div><div class="hint">Recomendación de este revisor</div><div class="word" style="font-size:26px">' + esc(tr(r.recommendation)) + '</div></div>' +
+      '<div class="sub">Seguridad del revisor: ' + esc(r.confidence) + ' de 5 (indica hasta dónde llega su juicio; no pesa más ni menos).<br>' +
       esc(r.identity||'') + '</div></div>' +
     '<h3>Valoración de conjunto</h3>' + md(r.summary) +
     '<h3>Fortalezas</h3>' + st +
@@ -1503,11 +1822,11 @@ function renderReviewer(r){
     '<h3>Comentarios sección a sección</h3>' + det +
     '<h3>Preguntas para los autores</h3><ol>' + (r.questions||[]).map(q=>'<li>'+esc(q)+'</li>').join('') + '</ol>' +
     '<h3>Erratas y cuestiones menores</h3>' + minor +
-    '<h3>Juicios anclados en criterios <span class="tag minor">NOT_CALIBRATED</span></h3>' + jt +
-    '<p class="hint">Las etiquetas son categorías locales al criterio nombrado. No se convierten en puntos, totales ni rankings.</p>' +
+    '<h3>Criterio por criterio <span class="tag minor">sin calibrar</span></h3>' + jt +
+    '<p class="hint">Los juicios no se suman ni se convierten en una nota.</p>' +
     '<h3>Fundamento de la recomendación</h3>' + md(r.recommendation_rationale) +
-    '<p class="hint">Procedencia del asiento: modelo ' + esc(pv.model||'—') + ' · familia ' + esc(pv.family||'—') +
-    ' · proveedor ' + esc(pv.provider||'—') + ' · contexto fresco: sí · visibilidad de informes ajenos: ninguna.</p>' +
+    '<p class="hint">Modelo ' + esc(pv.model||'—') + ' · familia ' + esc(pv.family||'—') +
+    ' · proveedor ' + esc(pv.provider||'—') + ' · no vio los informes de los demás.</p>' +
     '</div>';
 }
 
@@ -1517,7 +1836,7 @@ function renderDA(r){
   const cat = c => String(c||'minor').toLowerCase();
   const issues = (r.issues||[]).map(i =>
     '<div class="finding ' + cat(i.category) + '"><h5>' + esc(i.id) + ' · ' + esc(i.title) +
-      '<span class="tag ' + cat(i.category) + '">' + esc(i.category) + '</span></h5>' +
+      '<span class="tag ' + cat(i.category) + '">' + esc(tr(i.category)) + '</span></h5>' +
     '<div class="hint" style="margin-bottom:4px">Registro: ' + esc(i.register) + '</div>' +
     '<p>' + esc(i.problem) + '</p><p><b>Por qué importa.</b> ' + esc(i.why) + '</p>' +
     '<p><b>Sugerencia.</b> ' + esc(i.suggestion) + '</p><div class="anchor">' + esc(i.anchor) + '</div></div>').join('');
@@ -1532,7 +1851,7 @@ function renderDA(r){
     '<h3>Partes interesadas ausentes</h3><ul>' + (sh||'<li>Ninguna registrada.</li>') + '</ul>' +
     '<h3>La prueba del «¿y qué?»</h3>' + md(r.so_what_test) +
     '<h3>Observaciones (no son defectos)</h3><ul>' + ((r.observations||[]).map(o=>'<li>'+esc(o)+'</li>').join('')||'<li>Ninguna.</li>') + '</ul>' +
-    '<p class="hint">El canal de observaciones nunca se convierte en severidad. Este asiento no emite voto en la matriz de decisión.</p>' +
+    '<p class="hint">Las observaciones no son defectos. El abogado del diablo no vota la decisión.</p>' +
     '</div>';
 }
 
@@ -1550,31 +1869,31 @@ function renderDecision(d){
   const mech = y._mech || {};
 
   const gate = g.total
-    ? '<div class="gate ' + (g.blocks_accept?'':'clear') + '"><b>Puerta terminal DA-CRITICAL.</b> ' +
-        g.total + ' problema(s) CRITICAL del abogado del diablo. ' +
+    ? '<div class="gate ' + (g.blocks_accept?'':'clear') + '"><b>Problemas críticos del abogado del diablo.</b> ' +
+        g.total + ' en total. ' +
         (g.blocks_accept
-          ? g.blocking + ' validado(s) o sin resolver: bloquean una aceptación silenciosa.'
-          : 'Ninguno queda validado ni sin resolver; los adjudicados y rechazados quedan registrados con su razonamiento y no vetan por sí solos.') +
+          ? g.blocking + ' confirmado(s) o sin resolver: impiden aceptar el trabajo sin más.'
+          : 'El editor los ha examinado y ninguno queda confirmado ni pendiente; su razonamiento queda registrado.') +
         (g.unadjudicated && g.unadjudicated.length
-          ? ' <b>Sin adjudicar: ' + g.unadjudicated.join(', ') + '</b> — saltarse en silencio un CRITICAL nunca está permitido; reejecuta la síntesis.'
+          ? ' <b>Sin adjudicar: ' + g.unadjudicated.join(', ') + '</b> — el editor no se ha pronunciado sobre ellos; vuelve a ejecutar la síntesis.'
           : '') +
-        (g.escalation ? '<div style="margin-top:6px"><b>' + esc(g.escalation) + '</b></div>' : '') +
+        (g.escalation ? '<div style="margin-top:6px"><b>El editor acepta el trabajo aunque quedan problemas críticos confirmados o pendientes: esta contradicción la tienes que valorar tú.</b></div>' : '') +
       '</div>'
     : '';
 
   const adj = (y.da_adjudication||[]).map(a =>
-    '<tr><td>' + esc(a.id) + '</td><td>' + esc(a.title) + '</td><td>' + esc(a.category) + '</td>' +
-    '<td>' + esc(a.status) + '</td><td>' + esc(a.rationale) + '</td></tr>').join('');
+    '<tr><td>' + esc(a.id) + '</td><td>' + esc(a.title) + '</td><td>' + esc(tr(a.category)) + '</td>' +
+    '<td>' + esc(tr(a.status)) + '</td><td>' + esc(a.rationale) + '</td></tr>').join('');
 
   const cons = (y.consensus||[]).map(c =>
     '<div class="finding ' + String(c.severity||'minor').toLowerCase() + '"><h5>' + esc(c.issue) +
-    '<span class="tag ' + String(c.severity||'minor').toLowerCase() + '">' + esc(c.severity) + '</span></h5>' +
-    '<div class="hint">Corroborado por: ' + (c.seats||[]).join(', ') + '</div>' +
+    '<span class="tag ' + String(c.severity||'minor').toLowerCase() + '">' + esc(tr(c.severity)) + '</span></h5>' +
+    '<div class="hint">Corroborado por: ' + (c.seats||[]).map(nomSeat).join(', ') + '</div>' +
     (c.note?'<p>'+esc(c.note)+'</p>':'') + '</div>').join('') || '<p class="hint">Sin puntos de consenso registrados.</p>';
 
   const dis = (y.disagreements||[]).map(x =>
     '<div class="rm"><h5>' + esc(x.issue) + '</h5><ul style="font-size:13.5px;margin:4px 0">' +
-    (x.positions||[]).map(p=>'<li><b>'+esc(p.seat)+':</b> '+esc(p.position)+'</li>').join('') +
+    (x.positions||[]).map(p=>'<li><b>'+esc(nomSeat(p.seat))+':</b> '+esc(p.position)+'</li>').join('') +
     '</ul><p style="font-size:13.5px;margin:0"><b>Arbitraje.</b> ' + esc(x.arbitration) + '</p></div>').join('') ||
     '<p class="hint">Sin desacuerdos registrados entre asientos.</p>';
 
@@ -1584,7 +1903,7 @@ function renderDecision(d){
     '<div class="anchor">' + esc(u.anchor) + '</div></li>').join('');
 
   const seatsRow = Object.keys(SEAT_DEFS).filter(k=>S.seats[k] && k!=='DA' && !S.seats[k].error)
-    .map(k=>k + ' = ' + S.seats[k].recommendation).join(' · ');
+    .map(k=>SEAT_DEFS[k].name.replace(/^Revisor \d+ · /,'') + ': ' + tr(S.seats[k].recommendation)).join(' · ');
 
   const families = {};
   Object.keys(SEAT_DEFS).forEach(k=>{ const r=S.seats[k]; if(r && r._provenance) families[r._provenance.family]=1; });
@@ -1607,35 +1926,35 @@ function renderDecision(d){
 
   const html =
     '<div class="decision ' + decClass(y.decision) + '">' +
-      '<div><div class="hint">Decisión editorial</div><div class="word">' + esc(y.decision) + '</div>' +
+      '<div><div class="hint">Decisión del editor</div><div class="word">' + esc(tr(y.decision)) + '</div>' +
       (y.decision_subtype ? '<div class="hint">' + esc(y.decision_subtype) + '</div>' : '') + '</div>' +
-      '<div class="sub">Matriz mecánica: <b>' + esc(mech.decision||'—') + '</b>. ' + esc(mech.note||'') +
-      (seatsRow ? '<br>Votos: ' + esc(seatsRow) : '') +
-      (y.matrix && y.matrix.override_rationale ? '<br><b>Desviación razonada:</b> ' + esc(y.matrix.override_rationale) : '') +
+      '<div class="sub">Lo que saldría de aplicar la regla a las recomendaciones: <b>' + esc(tr(mech.decision)||'—') + '</b>. ' + esc(mech.note||'') +
+      (seatsRow ? '<br>Recomendaciones: ' + esc(seatsRow) : '') +
+      (y.matrix && y.matrix.override_rationale ? '<br><b>Por qué el editor se aparta de la regla:</b> ' + esc(y.matrix.override_rationale) : '') +
       '</div>' +
     '</div>' +
     (mech.flags && mech.flags.length ? '<div class="warn" style="margin-top:12px">' + mech.flags.map(esc).join('<br>') + '</div>' : '') +
     (gate ? '<div style="margin-top:12px">' + gate + '</div>' : '') +
     '<div class="prose" style="margin-top:16px">' +
-      '<h3>Carta de decisión</h3>' + md(y.letter) +
+      '<h3>Carta del editor</h3>' + md(y.letter) +
       '<h3>Consenso del panel</h3>' + cons +
       '<h3>Desacuerdos y arbitraje</h3>' + dis +
-      (adj ? '<h3>Adjudicación de los problemas del abogado del diablo</h3><table class="jt">' +
+      (adj ? '<h3>Qué decide el editor sobre el abogado del diablo</h3><table class="jt">' +
         '<tr><th>Id</th><th>Problema</th><th>Categoría</th><th>Estado</th><th>Razonamiento</th></tr>' + adj + '</table>' : '') +
       (y.verified_criteria && y.verified_criteria.length
-        ? '<h3>Criterios verificados positivamente</h3><ul>' + y.verified_criteria.map(x=>'<li>'+esc(x)+'</li>').join('') + '</ul>' : '') +
-      (unres ? '<h3>Criterios decisivos sin resolver</h3><ul>' + unres + '</ul>' : '') +
+        ? '<h3>Lo que el trabajo cumple</h3><ul>' + y.verified_criteria.map(x=>'<li>'+esc(x)+'</li>').join('') + '</ul>' : '') +
+      (unres ? '<h3>Lo que falta para aceptarlo</h3><ul>' + unres + '</ul>' : '') +
       (y.residual_uncertainty ? '<h3>Incertidumbre residual</h3>' + md(y.residual_uncertainty) : '') +
-      '<h3>Procedencia de ejecución del panel</h3>' + prov +
+      '<h3>Cómo se ha hecho esta revisión</h3>' + prov +
     '</div>' +
     '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">' +
       '<button class="btn ghost small" id="expMd">Descargar Markdown</button>' +
       '<button class="btn ghost small" id="expDoc">Descargar Word</button>' +
       '<button class="btn ghost small" id="expJson">Descargar JSON</button>' +
-      '<button class="btn ghost small" id="expRm">Exportar hoja de ruta para re-revisión</button>' +
+      '<button class="btn ghost small" id="expRm">Hoja de ruta para la re-revisión (.json)</button>' +
     '</div>';
 
-  const b = box('Decisión editorial', 'Fase 2', html);
+  const b = box('Decisión del editor', '', html);
   d.appendChild(b);
   b.querySelector('#expMd').onclick = () => download(buildMarkdown(), fileBase()+'.md','text/markdown');
   b.querySelector('#expDoc').onclick = exportWord;
@@ -1649,13 +1968,13 @@ function renderRoadmap(d){
   const items = S.synth.roadmap || [];
   if(!items.length) return;
   const html =
-    '<p class="hint">Núcleo inmutable y no jerarquizado: los ítems van ordenados por el asiento que los originó, no por importancia ni por orden de trabajo. Tu triaje se guarda aparte, en el anexo <code>author-adjudication/1.0</code>.</p>' +
+    '<p class="hint">Lo que pide el panel, ordenado por el revisor que lo planteó (no por importancia). Marca qué vas a hacer con cada punto: tu decisión se guarda aparte y no cambia la hoja de ruta.</p>' +
     items.map(r => {
       const t = S.triage[r.id] || {};
       return '<div class="rm" data-id="' + esc(r.id) + '">' +
         '<h5>' + esc(r.id) + ' · ' + esc(r.item) +
-          '<span class="tag ' + String(r.severity||'minor').toLowerCase() + '">' + esc(r.severity) + '</span></h5>' +
-        '<div class="src">Origen: ' + (r.source_seats||[]).join(', ') + (r.source_findings&&r.source_findings.length?' · hallazgos '+r.source_findings.join(', '):'') + '</div>' +
+          '<span class="tag ' + String(r.severity||'minor').toLowerCase() + '">' + esc(tr(r.severity)) + '</span></h5>' +
+        '<div class="src">Lo plantea: ' + (r.source_seats||[]).map(nomSeat).join(', ') + (r.source_findings&&r.source_findings.length?' · hallazgos '+r.source_findings.join(', '):'') + '</div>' +
         '<p style="font-size:13.5px;margin:6px 0 3px"><b>Criterio.</b> ' + esc(r.criterion) + '</p>' +
         '<p style="font-size:13.5px;margin:0 0 3px"><b>Trabajo requerido.</b> ' + esc(r.work_required) + '</p>' +
         '<div class="anchor">' + esc(r.evidence_anchor) + '</div>' +
@@ -1665,10 +1984,10 @@ function renderRoadmap(d){
       '</div>';
     }).join('') +
     '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">' +
-      '<button class="btn ghost small" id="expSide">Descargar anexo del autor</button>' +
+      '<button class="btn ghost small" id="expSide">Descargar mis decisiones (.json)</button>' +
       '<span class="hint" id="triageCount"></span></div>';
 
-  const b = box('Hoja de ruta de revisión', items.length + ' ítems', html);
+  const b = box('Hoja de ruta de cambios', items.length + ' puntos', html);
   d.appendChild(b);
 
   b.querySelectorAll('.rm').forEach(node=>{
@@ -1685,7 +2004,7 @@ function renderRoadmap(d){
     });
   });
   const done = items.filter(r=>S.triage[r.id] && S.triage[r.id].decision).length;
-  b.querySelector('#triageCount').textContent = done + ' de ' + items.length + ' ítems con decisión del autor.';
+  b.querySelector('#triageCount').textContent = done + ' de ' + items.length + ' puntos decididos.';
   b.querySelector('#expSide').onclick = () => download(JSON.stringify(sidecar(),null,2), fileBase()+'-author-adjudication.json','application/json');
 }
 function sidecar(){
@@ -1708,16 +2027,16 @@ function renderCoach(d){
   const log = S.coach.map(m =>
     '<div class="msg ' + (m.role==='user'?'me':'coach') + '"><div class="who">' +
     (m.role==='user'?'Tú':'Revisor de encaje') + '</div>' + md(m.content) + '</div>').join('') ||
-    '<p class="hint">El acompañamiento es opcional. Solo preguntas: la estrategia de revisión la formulas tú.</p>';
+    '<p class="hint">Un revisor te hace preguntas, una a una, para que decidas cómo revisar el trabajo. No te dará respuestas: la estrategia es tuya.</p>';
 
-  const b = box('Acompañamiento socrático de la revisión', 'Fase 2.5',
+  const b = box('Planifica la revisión con preguntas', 'opcional',
     '<div class="chat" id="chatBox">' + log + '</div>' +
     '<div style="display:flex;gap:8px;margin-top:10px">' +
       '<textarea id="coachIn" rows="2" placeholder="Escribe tu respuesta..."></textarea>' +
       '<button class="btn" id="coachSend" style="align-self:flex-end">Enviar</button>' +
     '</div>' +
     '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">' +
-      (S.coach.length ? '' : '<button class="btn ghost small" id="coachStart">Empezar el acompañamiento</button>') +
+      (S.coach.length ? '' : '<button class="btn ghost small" id="coachStart">Empezar</button>') +
       '<button class="btn ghost small" id="coachSkip">Saltar</button></div>');
   d.appendChild(b);
 
@@ -1749,7 +2068,7 @@ function renderCoach(d){
 function renderRereview(d){
   const rr = S.rereview;
   if(!rr || !rr.verdicts){
-    d.appendChild(box('Re-revisión (etapa 3\')','',
+    d.appendChild(box('Re-revisión','',
       '<div class="prose"><p>La re-revisión verifica si los cambios atienden los comentarios de la primera ronda, bajo el contrato de tres puertas <b>evidencia antes que persuasión</b>:</p>' +
       '<ol><li><b>Puerta 1</b> — compromiso de criterios ciego a la revisión: qué evidencia contaría, decidido antes de mirar el texto nuevo.</li>' +
       '<li><b>Puerta 2A</b> — veredicto de evidencia ciego a la persuasión: comparación del borrador previo con el revisado, sin ver la carta de respuesta.</li>' +
@@ -1765,38 +2084,38 @@ function renderRereview(d){
     const v = vmap[m.verdict] || ['minor', m.verdict];
     return '<tr><td>' + esc(m.id) + '</td><td>' + esc(m.item) + '</td><td>' + esc(m.author_claim) + '</td>' +
       '<td><span class="tag ' + v[0] + '">' + esc(v[1]) + '</span></td>' +
-      '<td>' + (m.claim_matches_evidence ? 'coincide' : '<b style="color:var(--stamp)">no coincide</b>') + '</td>' +
+      '<td>' + (m.claim_matches_evidence ? 'coincide' : '<b style="color:var(--brasa)">no coincide</b>') + '</td>' +
       '<td>' + esc(m.comment) + '</td></tr>';
   }).join('');
 
   const verd = (rr.verdicts||[]).map(v =>
     '<div class="finding ' + ((vmap[v.verdict]||['minor'])[0]) + '"><h5>' + esc(v.id) +
-    '<span class="tag ' + ((vmap[v.verdict]||['minor'])[0]) + '">' + esc(v.verdict) + '</span></h5>' +
+    '<span class="tag ' + ((vmap[v.verdict]||['minor'])[0]) + '">' + esc(tr(v.verdict)) + '</span></h5>' +
     '<p><b>Qué cambió.</b> ' + esc(v.what_changed) + '</p>' +
     (v.residual ? '<p><b>Residual.</b> ' + esc(v.residual) + '</p>' : '') +
     '<div class="anchor">' + esc(v.evidence_anchor) + '</div></div>').join('');
 
   const ni = (rr.new_issues||[]).map(i =>
     '<div class="finding ' + String(i.severity||'minor').toLowerCase() + '"><h5>' + esc(i.title) +
-    '<span class="tag ' + String(i.severity||'minor').toLowerCase() + '">' + esc(i.severity) + '</span></h5>' +
+    '<span class="tag ' + String(i.severity||'minor').toLowerCase() + '">' + esc(tr(i.severity)) + '</span></h5>' +
     '<p>' + esc(i.problem) + '</p><p><b>Sugerencia.</b> ' + esc(i.suggestion) + '</p>' +
     '<div class="anchor">' + esc(i.anchor) + '</div></div>').join('') || '<p class="hint">Sin problemas nuevos introducidos por la revisión.</p>';
 
   const html =
     '<div class="decision ' + decClass(dec.decision) + '">' +
-      '<div><div class="hint">Decisión de la etapa 3\'</div><div class="word">' + esc(dec.decision) + '</div></div>' +
-      '<div class="sub">' + esc(dec.why) + '<br>Derivada de forma cerrada a partir de los veredictos, no de la carta de respuesta.</div>' +
+      '<div><div class="hint">Resultado de la re-revisión</div><div class="word">' + esc(tr(dec.decision)) + '</div></div>' +
+      '<div class="sub">' + esc(dec.why) + '<br>Sale de los veredictos, no de lo que afirma la carta de respuesta.</div>' +
     '</div>' +
     '<div class="prose" style="margin-top:16px">' +
-      '<h3>Matriz de trazabilidad R&amp;R</h3>' +
-      '<table class="jt"><tr><th>Id</th><th>Ítem</th><th>Afirmación del autor</th><th>Veredicto</th><th>¿Coincide?</th><th>Comentario</th></tr>' + rows + '</table>' +
+      '<h3>Lo que dicen los autores frente a lo que se comprueba</h3>' +
+      '<table class="jt"><tr><th>Punto</th><th>Qué se pedía</th><th>Qué dicen los autores</th><th>Veredicto</th><th>¿Coincide?</th><th>Comentario</th></tr>' + rows + '</table>' +
       (rr.summary ? md(rr.summary) : '') +
-      '<h3>Veredictos de evidencia (puerta 2A, congelados)</h3>' + verd +
+      '<h3>Veredicto punto por punto (antes de leer la carta)</h3>' + verd +
       '<h3>Problemas nuevos</h3>' + ni +
     '</div>' +
     '<div style="margin-top:14px"><button class="btn ghost small" id="expRr">Descargar la verificación</button></div>';
 
-  const b = box('Verificación de la revisión','Etapa 3\'', html);
+  const b = box('Verificación de la revisión','', html);
   d.appendChild(b);
   b.querySelector('#expRr').onclick = () => download(JSON.stringify(rr,null,2), fileBase()+'-reverificacion.json','application/json');
 }
@@ -1828,8 +2147,8 @@ function fullRecord(){
 function buildMarkdown(){
   const L = [];
   const y = S.synth || {};
-  L.push('# Informe de revisión por pares — ' + ($('#title').value||'Sin título'));
-  L.push('*Generado por ArbitrIA el ' + new Date().toLocaleString('es') + '. Estado de calibración: NOT_CALIBRATED.*');
+  L.push('# Revisión por pares simulada — ' + ($('#title').value||'Sin título'));
+  L.push('*Generado por ArbitrIA el ' + new Date().toLocaleString('es') + '. Sin calibrar: es un ensayo, no una predicción.*');
   if(S.phase0){
     const f = S.phase0.field||{};
     L.push('\n## Análisis de campo\n');
@@ -1847,13 +2166,13 @@ function buildMarkdown(){
     if(k === 'DA'){
       L.push('\n### Contraargumento más fuerte\n\n' + (r.strongest_counter_argument||''));
       (r.issues||[]).forEach(i=>{
-        L.push('\n**' + i.id + ' · ' + i.title + '** (' + i.category + ' — ' + i.register + ')\n');
+        L.push('\n**' + i.id + ' · ' + i.title + '** (' + tr(i.category) + ' — ' + i.register + ')\n');
         L.push(i.problem + '\n\n*Por qué importa.* ' + i.why + '\n\n*Sugerencia.* ' + i.suggestion + '\n\n`' + i.anchor + '`');
       });
       L.push('\n### La prueba del «¿y qué?»\n\n' + (r.so_what_test||''));
       return;
     }
-    L.push('\n**Recomendación:** ' + r.recommendation + ' · **Confianza:** ' + r.confidence + '/5');
+    L.push('\n**Recomendación:** ' + tr(r.recommendation) + ' · **Seguridad:** ' + r.confidence + '/5');
     L.push('\n**Identidad:** ' + (r.identity||''));
     L.push('\n### Valoración de conjunto\n\n' + (r.summary||''));
     if((r.strengths||[]).length){
@@ -1862,7 +2181,7 @@ function buildMarkdown(){
     }
     if((r.weaknesses||[]).length){
       L.push('\n### Debilidades');
-      r.weaknesses.forEach(w=>L.push('\n**' + w.id + ' · ' + w.title + '** — ' + w.severity +
+      r.weaknesses.forEach(w=>L.push('\n**' + w.id + ' · ' + w.title + '** — ' + tr(w.severity) +
         '\n\n*Problema.* ' + w.problem + '\n\n*Por qué importa.* ' + w.why + '\n\n*Sugerencia.* ' + w.suggestion + '\n\n`' + w.anchor + '`'));
     }
     if((r.questions||[]).length){
@@ -1870,27 +2189,27 @@ function buildMarkdown(){
       r.questions.forEach((q,i)=>L.push((i+1) + '. ' + q));
     }
     if((r.judgements||[]).length){
-      L.push('\n### Juicios anclados en criterios\n');
-      L.push('| Dimensión | Fuente del criterio | Juicio | Razonamiento | ¿Decisivo? |\n|---|---|---|---|---|');
-      r.judgements.forEach(j=>L.push('| ' + j.dimension + ' | ' + (j.criterion_source||'') + ' | ' + j.judgement +
+      L.push('\n### Criterio por criterio\n');
+      L.push('| Criterio | De dónde sale | Juicio | Razonamiento | ¿Pesa en la decisión? |\n|---|---|---|---|---|');
+      r.judgements.forEach(j=>L.push('| ' + j.dimension + ' | ' + (j.criterion_source||'') + ' | ' + tr(j.judgement) +
         ' | ' + String(j.rationale||'').replace(/\|/g,'/') + ' | ' + (j.decision_bearing||'') + ' |'));
     }
   });
   if(y.decision){
-    L.push('\n---\n\n## Decisión editorial: ' + y.decision + (y.decision_subtype? ' — ' + y.decision_subtype : ''));
-    if(y._mech) L.push('\n*Matriz mecánica: ' + y._mech.decision + '. ' + y._mech.note + '*');
-    if(y._gate && y._gate.total) L.push('\n*Puerta DA-CRITICAL: ' + y._gate.total + ' CRITICAL, ' + y._gate.blocking + ' bloqueante(s).*');
+    L.push('\n---\n\n## Decisión del editor: ' + tr(y.decision) + (y.decision_subtype? ' — ' + y.decision_subtype : ''));
+    if(y._mech) L.push('\n*Regla aplicada a las recomendaciones: ' + tr(y._mech.decision) + '. ' + y._mech.note + '*');
+    if(y._gate && y._gate.total) L.push('\n*Problemas críticos del abogado del diablo: ' + y._gate.total + '; confirmados o pendientes: ' + y._gate.blocking + '.*');
     L.push('\n' + (y.letter||''));
     if((y.roadmap||[]).length){
-      L.push('\n## Hoja de ruta de revisión (núcleo inmutable, sin jerarquía)\n');
+      L.push('\n## Hoja de ruta de cambios (ordenada por revisor, no por importancia)\n');
       y.roadmap.forEach(r=>{
         const t = S.triage[r.id]||{};
-        L.push('\n**' + r.id + ' · ' + r.item + '** — ' + r.severity + ' · origen ' + (r.source_seats||[]).join(', '));
+        L.push('\n**' + r.id + ' · ' + r.item + '** — ' + tr(r.severity) + ' · planteado por ' + (r.source_seats||[]).map(nomSeat).join(', '));
         L.push('\n*Criterio.* ' + r.criterion + '\n\n*Trabajo requerido.* ' + r.work_required + '\n\n`' + r.evidence_anchor + '`');
-        if(t.decision) L.push('\n*Triaje del autor:* ' + t.decision + (t.note? ' — ' + t.note : ''));
+        if(t.decision) L.push('\n*Mi decisión:* ' + ({will_address:'lo atenderé', wont_address:'no lo atenderé', not_on_point:'no viene al caso'}[t.decision] || t.decision) + (t.note? ' — ' + t.note : ''));
       });
     }
-    L.push('\n---\n\n*Procedencia: proveedor openai; familia de modelos compartida entre asientos salvo indicación contraria; la separación de roles no acredita procesos de error independientes. Persona responsable: ' + ($('#human').value||'no declarada') + '.*');
+    L.push('\n---\n\n*Todos los revisores comparten proveedor (OpenAI) y, salvo indicación, modelo: no son revisores independientes. Persona responsable: ' + ($('#human').value||'no declarada') + '.*');
   }
   return L.join('\n');
 }
@@ -1945,7 +2264,7 @@ async function showHistory(){
         PSTATE[1] = Object.keys(S.seats||{}).length?'listo':'pendiente';
         PSTATE[2] = S.synth?'listo':'pendiente';
         PSTATE[3] = S.coach.length?'listo':'pendiente';
-        bg.remove(); toggleMode(); renderAll();
+        bg.remove(); toggleMode(); pintaModos(); renderAll(); go(S.synth || S.rereview ? 4 : Object.keys(S.seats||{}).length ? 3 : S.phase0 ? 2 : 1);
         toast('Revisión cargada. El texto del manuscrito no se guarda: vuelve a pegarlo si necesitas reejecutar.');
       };
       node.querySelector('[data-del]').onclick = async () => { await dbDel(id); node.remove(); };
@@ -1990,7 +2309,7 @@ function fillModelSelects(){
 }
 function toggleMode(){
   S.mode = $('#mode').value;
-  $('#rereviewBlock').hidden = S.mode !== 'rereview';
+  $('#rereviewBlock').classList.toggle('hidden', S.mode !== 'rereview');
   $('#btnRun').textContent = S.mode === 'rereview'
     ? 'Verificar la revisión'
     : (S.phase0 ? 'Volver a analizar el campo' : 'Analizar el campo y configurar el panel');
@@ -2000,11 +2319,11 @@ function toggleMode(){
 function init(){
   fillModelSelects();
   const cfg = loadCfg();
-  $('#model').value    = cfg.model || 'gpt-5.6-terra';
-  $('#mAnalyst').value = cfg.mAnalyst || 'gpt-5.6-terra';
-  $('#mSynth').value   = cfg.mSynth || 'gpt-5.6-sol';
-  $('#mR2').value      = cfg.mR2 || 'gpt-6-luna';
-  $('#effort').value   = cfg.effort || 'medium';
+  $('#model').value    = cfg.model || 'gpt-6-luna';
+  $('#mAnalyst').value = cfg.mAnalyst || 'gpt-6-luna';
+  $('#mSynth').value   = cfg.mSynth || 'gpt-6-luna';
+  $('#mR2').value      = cfg.mR2 || 'gpt-5.6-luna';
+  $('#effort').value   = cfg.effort || 'default';
   $('#lang').value     = cfg.lang || 'auto';
   $('#mode').value     = cfg.mode || 'full';
   $('#crossModel').checked = !!cfg.cross;
@@ -2034,7 +2353,7 @@ function init(){
   });
   $('#manuscript').addEventListener('change', renderInjectionFlag);
 
-  $('#pickFile').onclick = () => $('#file').click();
+  $('#pickFile').onclick = e => { e.preventDefault(); e.stopPropagation(); $('#file').click(); };
   $('#file').onchange = async e => {
     const f = e.target.files[0]; if(!f) return;
     await ingest(f);
@@ -2048,6 +2367,7 @@ function init(){
   });
 
   $('#btnRun').onclick = () => { S.mode === 'rereview' ? runRereview() : runPhase0(); };
+  $('#apiKey').addEventListener('input', () => { const v = $('#apiKey').value.trim(); if(v){ localStorage.setItem(KEY_STORE, v); $('#keyState').textContent = 'guardada'; } });
   $('#btnHistory').onclick = showHistory;
   $('#btnAbout').onclick = showAbout;
 
@@ -2069,7 +2389,82 @@ async function ingest(file){
   }catch(e){ toast('No se pudo leer el archivo: ' + e.message, 5000); }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+
+
+/* ══════════════════════════════════════════════════════════
+   ArbitrIA 2.0 · capa de uso (Forja)
+   ══════════════════════════════════════════════════════════ */
+const ico = n => `<svg class="i"><use href="#i-${n}"/></svg>`;
+function cargaLib(urls){ return urls.reduce((p,u) => p.catch(() => new Promise((ok,ko) => { const s = document.createElement('script'); s.src = u; s.onload = ok; s.onerror = () => { s.remove(); ko(); }; document.head.appendChild(s); })), Promise.reject()).catch(() => { throw new Error('No se pudo cargar una librería: ¿hay conexión?'); }); }
+/* etiquetas en castellano (solo al mostrarlas; los prompts siguen igual) */
+const TR = {'accept':'Aceptar','minor revision':'Revisión menor','major revision':'Revisión mayor','reject':'Rechazar','critical':'Crítico','major':'Importante','minor':'Menor','exceeds':'Supera','meets':'Cumple','partly_meets':'Cumple en parte','does_not_meet':'No cumple','not_assessed':'No evaluado','validated':'confirmado','unresolved':'sin resolver','rejected':'descartado','fully_addressed':'Atendido','partially_addressed':'Atendido en parte','not_addressed':'Sin atender','made_worse':'Empeorado','cannot_verify':'No verificable','user_review_required':'Lo decide una persona','strengths':'fortalezas','weaknesses':'debilidades','both':'fortalezas y debilidades'};
+const tr = v => { if(v == null) return v; const k = String(v).trim().toLowerCase(); return TR[k] || v; };
+
+/* ── navegación ── */
+let step = 0;
+const STEPS = ['Inicio','Manuscrito','Panel','Informes','Decisión'];
+function buildStepper(){ $('#stepper').innerHTML = STEPS.map((s,i) => `${i ? `<span class="sline${i <= step ? ' on' : ''}"></span>` : ''}<button class="sdot" type="button" data-go="${i}" data-state="${i < step ? 'done' : i === step ? 'now' : ''}" ${i === step ? 'aria-current="step"' : ''}><span class="n">${i < step ? ico('check') : i === 0 ? ico('scale') : i}</span><span class="lbl">${s}</span></button>`).join(''); document.querySelectorAll('#stepper [data-go]').forEach(b => b.onclick = () => go(+b.dataset.go)); }
+function go(i){ step = i; document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', +s.dataset.step === i)); $('#progBar').style.width = (i / 4 * 100) + '%'; buildStepper(); updateNav(); window.scrollTo({top:0, behavior:'instant'}); }
+const HINTS = ['Mira primero una <b>revisión completa</b>: no necesita clave.', 'Mejor el texto completo, con métodos, resultados y referencias.', 'Ajusta los perfiles si conoces mejor tu campo.', 'Cada revisor trabaja sin ver a los demás.', 'Marca qué harás con cada punto de la hoja de ruta.'];
+function updateNav(){
+  $('#navBack').classList.toggle('hidden', step === 0);
+  const rr = S.mode === 'rereview';
+  $('#navNextTxt').textContent = step === 0 ? 'Empezar' : step === 1 ? (rr ? 'Verificar la revisión' : S.phase0 ? 'Ver el panel' : 'Analizar y proponer el panel') : step === 2 ? (Object.keys(S.seats).some(k => SEAT_DEFS[k]) ? 'Ver los informes' : 'Confirmar y empezar la revisión') : step === 3 ? 'Ver la decisión' : 'Nueva revisión';
+  $('#navHint').innerHTML = HINTS[step];
+}
+$('#navBack').onclick = () => { if(step > 0) go(step - 1); };
+$('#navNext').onclick = () => {
+  if(S.running) return toast('Espera a que termine la fase en curso');
+  if(step === 0) return go(1);
+  if(step === 1){ if(S.mode !== 'rereview' && S.phase0 && S._texto === $('#manuscript').value) return go(2); if(!$('#manuscript').value.trim()) return toast('Carga o pega antes el manuscrito'); if(!loadKey()) { $('#apiKey').focus(); return toast('Pega tu clave de OpenAI'); } return $('#btnRun').click(); }
+  if(step === 2){ if(Object.keys(S.seats).some(k => SEAT_DEFS[k])) return go(3); const b = document.getElementById('btnPanel'); return b ? b.click() : toast('Primero hay que analizar el manuscrito'); }
+  if(step === 3){ if(!S.synth) return toast('El editor aún no ha decidido'); return go(4); }
+  if(step === 4){ if(!confirm('¿Empezar una revisión nueva? La actual queda en «Mis revisiones».')) return; Object.assign(S, {phase0:null, cards:null, seats:{}, synth:null, rereview:null, coach:[], triage:{}, usage:{in:0,out:0,calls:0}, reviewId:null, startedAt:null, _demo:false}); [0,1,2,3].forEach(k => PSTATE[k] = 'pendiente'); $('#manuscript').value = ''; $('#title').value = ''; renderAll(); go(1); }
+};
+$('#goHome').onclick = () => go(0);
+$('#btnStart').onclick = () => go(1);
+
+/* ── cada fase lleva a su pantalla ── */
+const cargando = (el, t) => { $(el).innerHTML = `<div class="forging"><div class="spark">${ico('sparkles')}</div><div style="flex:1"><b>${t}</b><span>Suele tardar entre medio minuto y dos minutos.</span></div></div>`; };
+const _p0 = runPhase0;
+runPhase0 = async function(){ if(!$('#manuscript').value.trim() || !loadKey()) return _p0(); S._demo = false; go(2); cargando('#dosConfig', 'El analista está leyendo el manuscrito y eligiendo a los revisores…'); await _p0(); S._texto = $('#manuscript').value; if(!S.phase0) go(1); updateNav(); };
+const _panel = runPanel;
+runPanel = async function(){ go(3); await _panel(); updateNav(); if(S.synth) go(4); };
+const _sy = runSynth;
+runSynth = async function(){ const m = document.createElement('div'); m.id = 'synthMsg'; $('#dosReports').prepend(m); cargando('#synthMsg', 'El editor está leyendo los informes y preparando la decisión…'); await _sy(); updateNav(); };
+const _rr = runRereview;
+runRereview = async function(){ go(4); cargando('#dosDecision', 'Comprobando punto por punto la versión revisada…'); await _rr(); updateNav(); };
+const _ra = renderAll;
+renderAll = function(){ _ra(); const d = S.mode === 'rereview'; $('#decTitle').textContent = d ? 'Verificación de la revisión' : 'La decisión'; $('#decLede').textContent = d ? 'Cada punto de la hoja de ruta se comprueba contra la versión nueva antes de leer la carta de respuesta.' : 'Carta del editor, en qué coinciden y discrepan los revisores, y la hoja de ruta con los cambios. Marca qué vas a atender: tu decisión se guarda aparte.'; };
+
+/* ── modos en tarjetas ── */
+const MODOS = [['full','Completa','Cuatro revisores, abogado del diablo y decisión del editor.'],['quick','Rápida','Solo el revisor de encaje: ¿encaja y qué falla de entrada?'],['methodology','Metodología','Encaje y revisor de métodos y estadística.'],['guided','Guiada','Completa, más preguntas para planificar la revisión.'],['rereview','Re-revisión','¿La versión nueva atiende los comentarios?']];
+function pintaModos(){ $('#modos').innerHTML = MODOS.map(([k,t,d]) => `<button type="button" data-m="${k}" aria-pressed="${S.mode === k}"><b>${t}</b><small>${d}</small></button>`).join(''); document.querySelectorAll('#modos [data-m]').forEach(b => b.onclick = () => { if(S.running) return; $('#mode').value = b.dataset.m; $('#mode').dispatchEvent(new Event('change')); pintaModos(); updateNav(); }); }
+
+/* ── ejemplos y revisión de muestra ── */
+const EJEMPLOS = [{"t": "Estudio de salud", "d": "Ejercicio y calidad de vida en mayores (cuasiexperimental)", "titulo": "Efecto de un programa de ejercicio supervisado sobre la calidad de vida de personas mayores", "venue": "Atención Primaria", "texto": "Efecto de un programa de ejercicio supervisado sobre la calidad de vida de personas mayores: estudio cuasiexperimental\n\nResumen\nObjetivo: evaluar el efecto de un programa de ejercicio multicomponente supervisado sobre la calidad de vida de personas mayores de 65 años que viven en la comunidad. Métodos: estudio cuasiexperimental con grupo de comparación no aleatorizado. El grupo de intervención (n = 38) participó en 24 semanas de ejercicio supervisado, tres sesiones semanales de 60 minutos; el grupo de comparación (n = 34) mantuvo su actividad habitual. La calidad de vida se midió con el cuestionario SF-36 al inicio y a las 24 semanas. Resultados: el grupo de intervención mejoró la función física (p = 0,01), la vitalidad (p = 0,03) y la salud mental (p = 0,04); no hubo diferencias en las demás cinco dimensiones. Conclusiones: el ejercicio supervisado mejora la calidad de vida de las personas mayores y debería incorporarse a la cartera de servicios de atención primaria.\n\n1. Introducción\nEl envejecimiento de la población plantea retos para los sistemas sanitarios. La actividad física se asocia con menor riesgo de dependencia y mejor calidad de vida en personas mayores. Sin embargo, la adherencia a los programas de ejercicio es baja y existen pocas experiencias evaluadas en atención primaria en nuestro entorno.\n\n2. Métodos\nSe reclutaron participantes en dos centros de salud urbanos. Las personas del centro A que aceptaron participar formaron el grupo de intervención; las del centro B, el grupo de comparación. Criterios de inclusión: 65 años o más, vivir en la comunidad y ausencia de contraindicación médica para el ejercicio. El programa combinó fuerza, equilibrio y resistencia aeróbica, dirigido por un fisioterapeuta. Se registró la asistencia a las sesiones. La calidad de vida se midió con el SF-36 (ocho dimensiones). Para comparar el cambio entre grupos se utilizó la prueba t de Student en cada dimensión. Se consideró significativo p < 0,05.\n\n3. Resultados\nCompletaron el estudio 31 de 38 participantes del grupo de intervención y 30 de 34 del grupo de comparación. La edad media fue de 71,2 años en el grupo de intervención y de 74,8 años en el de comparación; el 68 % y el 52 % eran mujeres, respectivamente. La asistencia media a las sesiones fue del 78 %. El grupo de intervención mostró una mejora mayor en función física (diferencia de cambio 8,4 puntos; p = 0,01), vitalidad (6,1 puntos; p = 0,03) y salud mental (5,2 puntos; p = 0,04). Las dimensiones de rol físico, dolor corporal, salud general, función social y rol emocional no mostraron diferencias significativas.\n\n4. Discusión\nNuestros resultados demuestran que el ejercicio supervisado mejora la calidad de vida de las personas mayores. Estos hallazgos coinciden con estudios previos. La alta asistencia indica que el programa es aceptable. Como limitación, el tamaño muestral es reducido. Futuros estudios deberían confirmar estos resultados en otras poblaciones.\n\n5. Conclusiones\nEl ejercicio supervisado es una intervención eficaz para mejorar la calidad de vida de las personas mayores y debería implantarse de forma generalizada en atención primaria.\n\nReferencias\n1. Organización Mundial de la Salud. Directrices sobre actividad física y hábitos sedentarios. Ginebra: OMS; 2020.\n2. Ware JE, Sherbourne CD. The MOS 36-item short-form health survey (SF-36). Med Care. 1992;30(6):473-83."}, {"t": "Estudio educativo", "d": "Uso de asistentes de IA y rendimiento académico (transversal)", "titulo": "Uso de asistentes de inteligencia artificial y rendimiento académico en estudiantes universitarios", "venue": "", "texto": "Uso de asistentes de inteligencia artificial y rendimiento académico en estudiantes universitarios: un estudio transversal\n\nResumen\nEste estudio analiza la relación entre el uso de asistentes de inteligencia artificial generativa y el rendimiento académico. Se encuestó a 212 estudiantes de grado de una universidad pública mediante un cuestionario en línea difundido en redes sociales. Los estudiantes que usaban asistentes de IA a diario tenían una nota media autodeclarada de 7,4, frente a 6,6 de quienes no los usaban (p < 0,001). Concluimos que el uso de la IA mejora el rendimiento académico y recomendamos su integración sistemática en la docencia.\n\n1. Introducción\nLos asistentes de IA generativa se han extendido rápidamente entre el estudiantado. El debate se ha centrado en los riesgos para la integridad académica, pero hay poca evidencia sobre su efecto en el aprendizaje.\n\n2. Método\nDiseño transversal. El cuestionario, difundido por las redes sociales de la universidad durante dos semanas, recogía la frecuencia de uso de asistentes de IA (nunca, ocasional, semanal, diario), la nota media del expediente (autodeclarada), la titulación y las horas de estudio semanales. Se compararon las notas medias entre categorías de uso con un ANOVA y la comparación entre uso diario y ningún uso con una t de Student.\n\n3. Resultados\nRespondieron 212 estudiantes (64 % mujeres; 71 % de titulaciones de ingeniería). El 38 % usaba asistentes a diario. La nota media aumentaba con la frecuencia de uso (ANOVA, p < 0,001). Los usuarios diarios declararon más horas de estudio semanales (14,2 frente a 9,8).\n\n4. Discusión\nEl uso de la IA mejora el rendimiento académico, probablemente porque facilita la comprensión de los contenidos. Las universidades deberían promover su uso en todas las asignaturas.\n\nReferencias\n1. Kasneci E, et al. ChatGPT for good? On opportunities and challenges of large language models for education. Learn Individ Differ. 2023;103:102274."}];
+$('#ejs').innerHTML = EJEMPLOS.map((e,i) => `<button type="button" data-ej="${i}"><b>${esc(e.t)}</b><small>${esc(e.d)}</small></button>`).join('');
+document.querySelectorAll('#ejs [data-ej]').forEach(b => b.onclick = () => { const e = EJEMPLOS[+b.dataset.ej]; $('#manuscript').value = e.texto; $('#title').value = e.titulo; $('#venue').value = e.venue; $('#manuscript').dispatchEvent(new Event('input')); renderInjectionFlag(); toast('Manuscrito de ejemplo cargado: tiene problemas reales que el panel debería encontrar'); });
+const DEMO = {"phase0": {"paper": {"title": "Efecto de un programa de ejercicio supervisado sobre la calidad de vida de personas mayores", "authors": "No indicados", "type": "empírico", "language": "español"}, "field": {"primary_discipline": "Salud pública y atención primaria", "secondary_disciplines": ["Geriatría", "Fisioterapia"], "paradigm": "Cuantitativo, posintervención con grupo de comparación", "methodology_type": "Cuasiexperimental no aleatorizado con medición antes y después", "journal_tier": "Q3-Q4", "tier_rationale": "Pregunta relevante, pero diseño no aleatorizado y muestra pequeña.", "maturity": "Borrador revisado", "maturity_rationale": "Estructura completa; análisis y discusión poco desarrollados."}, "journals": [{"name": "Atención Primaria", "why": "Intervenciones evaluadas en centros de salud españoles."}, {"name": "Revista Española de Geriatría y Gerontología", "why": "Público interesado en envejecimiento activo."}, {"name": "Fisioterapia", "why": "Programas de ejercicio dirigidos por fisioterapeutas."}], "strategy": "Panel centrado en la validez del diseño no aleatorizado y en el salto entre los resultados y las conclusiones."}, "cards": [{"role": "EIC", "display": "Revisor de encaje", "identity": "Editora asociada de una revista de atención primaria con experiencia en evaluación de intervenciones comunitarias.", "focus": ["Ajuste a Atención Primaria", "Relevancia para la cartera de servicios", "Proporción entre lo que se afirma y lo que se muestra"], "cares_about": "Que la conclusión sea útil para la práctica y esté justificada.", "blind_spots": "Detalles técnicos del análisis estadístico."}, {"role": "R1", "display": "Revisor 1 · Metodología", "identity": "Bioestadístico especializado en ensayos pragmáticos y estudios cuasiexperimentales.", "focus": ["Asignación por centro y confusión", "Análisis de cambio y comparaciones múltiples", "Pérdidas y análisis por intención de tratar"], "cares_about": "Que el diseño permita la inferencia causal que se hace.", "blind_spots": "Relevancia clínica de las dimensiones del SF-36."}, {"role": "R2", "display": "Revisor 2 · Dominio", "identity": "Geriatra investigadora en programas de ejercicio multicomponente.", "focus": ["Literatura sobre ejercicio y calidad de vida", "Diferencia mínima importante del SF-36", "Comparación con programas como Vivifrail"], "cares_about": "Que el trabajo se sitúe frente a la evidencia existente.", "blind_spots": "Análisis de costes."}, {"role": "R3", "display": "Revisor 3 · Perspectiva", "identity": "Investigadora en implementación de servicios sanitarios y equidad.", "focus": ["Aplicabilidad en atención primaria", "Quién participa y quién queda fuera", "Sostenibilidad del programa"], "cares_about": "Que la recomendación de implantación sea realista.", "blind_spots": "Detalles fisiológicos del ejercicio."}], "seats": {"EIC": {"role": "EIC", "display": "Revisor de encaje", "identity": "Editora asociada de una revista de atención primaria con experiencia en evaluación de intervenciones comunitarias.", "recommendation": "Major Revision", "confidence": 4, "summary": "El manuscrito evalúa un programa de ejercicio supervisado en dos centros de salud y encuentra mejoras en tres de las ocho dimensiones del SF-36. La pregunta es pertinente para atención primaria y el programa está bien descrito. Sin embargo, las conclusiones —«demuestra», «debería implantarse de forma generalizada»— van mucho más allá de lo que permite un diseño no aleatorizado con 61 participantes analizados. Recomiendo una revisión mayor centrada en ajustar las afirmaciones al diseño.", "strengths": [{"id": "S1", "title": "Programa bien descrito", "description": "La intervención (frecuencia, duración, componentes y profesional) es replicable.", "anchor": "text: Métodos \"tres sesiones semanales de 60 minutos\""}], "weaknesses": [{"id": "W1", "title": "Conclusiones desproporcionadas", "problem": "Se afirma que el programa «mejora» la calidad de vida y debe implantarse de forma generalizada.", "anchor": "text: Conclusiones \"debería implantarse de forma generalizada en atención primaria\"", "why": "Un estudio no aleatorizado con 61 participantes no permite esa recomendación.", "suggestion": "Hablar de asociación y plantear el estudio como piloto que justifica un ensayo.", "severity": "Major", "confidence": 4, "competence_basis": "Experiencia editorial"}], "coverage_receipt": null, "detailed": [{"section": "Conclusiones", "notes": ["Ajustar el alcance al diseño."]}], "questions": ["¿Qué diferencia mínima importante del SF-36 consideran relevante?", "¿Planean un ensayo aleatorizado?"], "minor_issues": {"language": [], "citation": ["Solo dos referencias: es insuficiente para situar el trabajo."], "figures": ["Falta una tabla con las ocho dimensiones antes y después."], "layout": []}, "judgements": [{"dimension": "Originalidad", "criterion_source": "Expectativa de la revista", "judgement": "PARTLY_MEETS", "anchors": "text: Introducción", "rationale": "Pregunta conocida; aporta el contexto local.", "uncertainty": "Media", "decision_bearing": "No"}, {"dimension": "Rigor metodológico", "criterion_source": "Tipo de artículo", "judgement": "PARTLY_MEETS", "anchors": "text: Métodos", "rationale": "Diseño débil para la conclusión.", "uncertainty": "Baja", "decision_bearing": "Sí"}, {"dimension": "Suficiencia de la evidencia", "criterion_source": "Tipo de artículo", "judgement": "PARTLY_MEETS", "anchors": "text: Resultados", "rationale": "Tres de ocho dimensiones.", "uncertainty": "Media", "decision_bearing": "Sí"}, {"dimension": "Coherencia argumental", "criterion_source": "Tipo de artículo", "judgement": "DOES_NOT_MEET", "anchors": "text: Conclusiones", "rationale": "Conclusión causal no justificada.", "uncertainty": "Baja", "decision_bearing": "Sí"}, {"dimension": "Calidad de la escritura", "criterion_source": "Estándar general", "judgement": "MEETS", "anchors": "—", "rationale": "Claro y ordenado.", "uncertainty": "Baja", "decision_bearing": "No"}, {"dimension": "Integración de la literatura", "criterion_source": "Tipo de artículo", "judgement": "DOES_NOT_MEET", "anchors": "absence: Introducción y Discusión — expected estudios previos citados; checked referencias", "rationale": "Solo dos referencias.", "uncertainty": "Baja", "decision_bearing": "Sí"}, {"dimension": "Significación e impacto", "criterion_source": "Expectativa de la revista", "judgement": "MEETS", "anchors": "text: Introducción", "rationale": "Relevante para la práctica.", "uncertainty": "Media", "decision_bearing": "No"}], "recommendation_rationale": "Sin resolver: proporcionalidad de las conclusiones e integración de la literatura. Ambos son reparables.", "_provenance": {"seat": "EIC", "model": "gpt-6-luna", "family": "gpt-6", "provider": "openai", "fresh_context": true, "peer_output_visible": false, "at": "2026-09-29T10:00:00Z"}}, "R1": {"role": "R1", "display": "Revisor 1 · Metodología", "identity": "Bioestadístico especializado en ensayos pragmáticos y estudios cuasiexperimentales.", "recommendation": "Major Revision", "confidence": 5, "summary": "El diseño asigna la intervención por centro de salud, sin aleatorización, y los grupos difieren al inicio en edad (71,2 frente a 74,8 años) y sexo (68 % frente a 52 % de mujeres). Con ocho pruebas t sin corrección, las tres significativas podrían deberse en parte al azar. Además, solo se analizan quienes completaron el estudio. La medición y la intervención están bien descritas, pero el análisis no permite atribuir el cambio al programa.", "strengths": [{"id": "S1", "title": "Medición validada", "description": "El SF-36 es un instrumento validado y se mide antes y después.", "anchor": "text: Métodos \"La calidad de vida se midió con el SF-36 (ocho dimensiones)\""}], "weaknesses": [{"id": "W1", "title": "Confusión por asignación por centro", "problem": "Los grupos se forman por centro y difieren al inicio en edad y sexo, sin ajuste.", "anchor": "text: Resultados \"La edad media fue de 71,2 años en el grupo de intervención y de 74,8 años\"", "why": "Las diferencias pueden deberse a las características de cada centro y no al programa.", "suggestion": "Modelo de regresión del cambio ajustado por edad, sexo y valor basal (ANCOVA), y discutir la confusión residual.", "severity": "Critical", "confidence": 5, "competence_basis": "Métodos cuasiexperimentales"}, {"id": "W2", "title": "Ocho comparaciones sin corrección", "problem": "Se hacen ocho pruebas t, una por dimensión, sin corrección ni resultado principal predefinido.", "anchor": "text: Métodos \"se utilizó la prueba t de Student en cada dimensión\"", "why": "La probabilidad de al menos un falso positivo es alta.", "suggestion": "Declarar un resultado principal o aplicar una corrección (Holm) e informar diferencias con IC 95 %.", "severity": "Major", "confidence": 5, "competence_basis": "Estadística"}, {"id": "W3", "title": "Análisis solo de quienes completaron", "problem": "Se analizan 61 de 72 participantes sin describir las pérdidas.", "anchor": "text: Resultados \"Completaron el estudio 31 de 38\"", "why": "Si abandonan quienes menos mejoran, el efecto se sobrestima.", "suggestion": "Comparar a quienes abandonan y hacer un análisis de sensibilidad.", "severity": "Major", "confidence": 4, "competence_basis": "Ensayos pragmáticos"}], "coverage_receipt": null, "detailed": [{"section": "Metodología", "notes": ["No hay cálculo del tamaño muestral."]}, {"section": "Resultados", "notes": ["Faltan los IC 95 % de las diferencias."]}], "questions": ["¿Cuál era el resultado principal antes de empezar?", "¿Cómo eran quienes abandonaron?"], "minor_issues": {"language": [], "citation": [], "figures": ["Añadir un diagrama de flujo de participantes."], "layout": []}, "judgements": [{"dimension": "Originalidad", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Rigor metodológico", "criterion_source": "Estándar TREND", "judgement": "DOES_NOT_MEET", "anchors": "text: Métodos", "rationale": "Asignación por centro sin ajuste.", "uncertainty": "Baja", "decision_bearing": "Sí"}, {"dimension": "Suficiencia de la evidencia", "criterion_source": "Estándar TREND", "judgement": "PARTLY_MEETS", "anchors": "text: Resultados", "rationale": "Sin IC ni corrección.", "uncertainty": "Media", "decision_bearing": "Sí"}, {"dimension": "Coherencia argumental", "criterion_source": "Tipo de artículo", "judgement": "PARTLY_MEETS", "anchors": "text: Discusión", "rationale": "La conclusión no sigue del análisis.", "uncertainty": "Media", "decision_bearing": "Sí"}, {"dimension": "Calidad de la escritura", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Integración de la literatura", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Significación e impacto", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}], "recommendation_rationale": "El problema de confusión es crítico pero reparable con ajuste y un lenguaje de asociación.", "_provenance": {"seat": "R1", "model": "gpt-6-luna", "family": "gpt-6", "provider": "openai", "fresh_context": true, "peer_output_visible": false, "at": "2026-09-29T10:00:00Z"}}, "R2": {"role": "R2", "display": "Revisor 2 · Dominio", "identity": "Geriatra investigadora en programas de ejercicio multicomponente.", "recommendation": "Major Revision", "confidence": 4, "summary": "El programa multicomponente es coherente con la evidencia, pero el trabajo casi no la cita: dos referencias, ninguna sobre ensayos de ejercicio en mayores. Tampoco interpreta si las mejoras (8,4, 6,1 y 5,2 puntos) superan la diferencia mínima importante del SF-36, lo que impide valorar su relevancia clínica.", "strengths": [{"id": "S1", "title": "Programa alineado con la evidencia", "description": "Combina fuerza, equilibrio y resistencia, como recomiendan las directrices.", "anchor": "text: Métodos \"El programa combinó fuerza, equilibrio y resistencia aeróbica\""}], "weaknesses": [{"id": "W1", "title": "Literatura casi ausente", "problem": "No se citan ensayos ni revisiones sobre ejercicio y calidad de vida en mayores.", "anchor": "absence: Introducción y Discusión — expected ensayos y revisiones sistemáticas; checked texto y referencias", "why": "No se puede situar la aportación ni comparar la magnitud del efecto.", "suggestion": "Incorporar revisiones sistemáticas y programas como Vivifrail.", "severity": "Major", "confidence": 4, "competence_basis": "Geriatría"}, {"id": "W2", "title": "Relevancia clínica no discutida", "problem": "No se compara el cambio con la diferencia mínima importante del SF-36.", "anchor": "text: Resultados \"diferencia de cambio 8,4 puntos\"", "why": "Una diferencia significativa puede no ser relevante.", "suggestion": "Discutir los cambios frente a la diferencia mínima importante publicada.", "severity": "Major", "confidence": 4, "competence_basis": "Medición de resultados"}], "coverage_receipt": null, "detailed": [{"section": "Discusión", "notes": ["«Coinciden con estudios previos» sin citar cuáles."]}], "questions": ["¿Qué estudios previos coinciden con sus resultados?"], "minor_issues": {"language": [], "citation": [], "figures": [], "layout": []}, "judgements": [{"dimension": "Originalidad", "criterion_source": "Estándar general", "judgement": "PARTLY_MEETS", "anchors": "absence", "rationale": "Sin literatura no se ve la novedad.", "uncertainty": "Alta", "decision_bearing": "Sí"}, {"dimension": "Rigor metodológico", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Suficiencia de la evidencia", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Coherencia argumental", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Calidad de la escritura", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Integración de la literatura", "criterion_source": "Estándar general", "judgement": "DOES_NOT_MEET", "anchors": "absence: Referencias", "rationale": "Dos referencias.", "uncertainty": "Baja", "decision_bearing": "Sí"}, {"dimension": "Significación e impacto", "criterion_source": "Estándar general", "judgement": "PARTLY_MEETS", "anchors": "text: Resultados", "rationale": "Relevancia clínica no discutida.", "uncertainty": "Media", "decision_bearing": "Sí"}], "recommendation_rationale": "Reparable con una revisión de la literatura y la interpretación clínica.", "_provenance": {"seat": "R2", "model": "gpt-6-luna", "family": "gpt-6", "provider": "openai", "fresh_context": true, "peer_output_visible": false, "at": "2026-09-29T10:00:00Z"}}, "R3": {"role": "R3", "display": "Revisor 3 · Perspectiva", "identity": "Investigadora en implementación de servicios sanitarios y equidad.", "recommendation": "Minor Revision", "confidence": 3, "summary": "Desde la implementación, el trabajo aporta un dato valioso: una asistencia del 78 %. Pero la recomendación de implantar el programa en toda la atención primaria no considera recursos, quién accede a él ni su sostenibilidad. Son cambios de discusión, no de diseño.", "strengths": [{"id": "S1", "title": "Asistencia alta", "description": "Un 78 % de asistencia sugiere aceptabilidad.", "anchor": "text: Resultados \"La asistencia media a las sesiones fue del 78 %\""}], "weaknesses": [{"id": "W1", "title": "Implantación sin análisis de recursos", "problem": "Se recomienda implantarlo de forma generalizada sin discutir fisioterapeutas, espacios ni costes.", "anchor": "text: Conclusiones \"debería implantarse de forma generalizada\"", "why": "Una recomendación de política necesita valorar viabilidad.", "suggestion": "Discutir recursos necesarios y equidad de acceso.", "severity": "Minor", "confidence": 3, "competence_basis": "Implementación"}], "coverage_receipt": null, "detailed": [], "questions": ["¿Quién no aceptó participar y por qué?"], "minor_issues": {"language": [], "citation": [], "figures": [], "layout": []}, "judgements": [{"dimension": "Originalidad", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Rigor metodológico", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Suficiencia de la evidencia", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Coherencia argumental", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Calidad de la escritura", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Integración de la literatura", "criterion_source": "Fuera de este asiento", "judgement": "NOT_ASSESSED", "anchors": "—", "rationale": "No corresponde a este revisor.", "uncertainty": "—", "decision_bearing": "No"}, {"dimension": "Significación e impacto", "criterion_source": "Estándar general", "judgement": "PARTLY_MEETS", "anchors": "text: Conclusiones", "rationale": "Impacto práctico sin viabilidad.", "uncertainty": "Media", "decision_bearing": "No"}], "recommendation_rationale": "Cambios en la discusión, sin nuevos análisis.", "_provenance": {"seat": "R3", "model": "gpt-6-luna", "family": "gpt-6", "provider": "openai", "fresh_context": true, "peer_output_visible": false, "at": "2026-09-29T10:00:00Z"}}, "DA": {"role": "DA", "strongest_counter_argument": "El programa no se asignó al azar: el grupo de intervención está formado por quienes, en un centro, aceptaron hacer ejercicio tres veces por semana durante seis meses. Esas personas eran más jóvenes y probablemente más motivadas y sanas. Que mejoren más en función física, vitalidad y salud mental —justo las dimensiones más sensibles a la motivación y al contacto social— es exactamente lo que se esperaría aunque el ejercicio no tuviera ningún efecto propio. Además, de ocho pruebas, tres dan p < 0,05 sin corrección, y se analizan solo quienes completaron. La explicación más parsimoniosa es la selección y el azar, no el programa.", "issues": [{"id": "DA1", "category": "CRITICAL", "register": "argumento central", "title": "La selección explica el resultado", "problem": "Los participantes se autoseleccionan por centro y difieren al inicio.", "anchor": "text: Métodos \"Las personas del centro A que aceptaron participar formaron el grupo de intervención\"", "why": "Sin ajuste, no se puede atribuir el cambio al programa.", "suggestion": "Ajustar por diferencias basales y cambiar el lenguaje causal por el de asociación."}, {"id": "DA2", "category": "MAJOR", "register": "sobregeneralización", "title": "De dos centros a toda la atención primaria", "problem": "Se recomienda la implantación generalizada a partir de dos centros urbanos.", "anchor": "text: Conclusiones", "why": "La muestra no representa otros contextos.", "suggestion": "Limitar la recomendación."}], "alternative_explanations": [{"explanation": "Efecto del contacto social de las sesiones de grupo", "why_not_ruled_out": "No hay grupo de comparación con actividad social sin ejercicio."}], "missing_stakeholders": [{"stakeholder": "Personas mayores con movilidad reducida", "what_they_would_ask": "¿Podrían participar quienes no se desplazan al centro?"}], "observations": ["La descripción del programa es un buen punto de partida para un ensayo."], "so_what_test": "Si todo fuera cierto, justificaría un ensayo aleatorizado, no una implantación generalizada.", "confidence": 4, "_provenance": {"seat": "DA", "model": "gpt-6-luna", "family": "gpt-6", "provider": "openai", "fresh_context": true, "peer_output_visible": false, "at": "2026-09-29T10:00:00Z"}}}, "synth": {"consensus": [{"issue": "Las conclusiones van más allá del diseño", "seats": ["EIC", "R1", "DA"], "severity": "Major", "note": "Tres revisores señalan el lenguaje causal y la recomendación de implantación."}, {"issue": "Confusión por la asignación por centro", "seats": ["R1", "DA"], "severity": "Critical", "note": "Diferencias basales sin ajustar."}], "disagreements": [{"issue": "Gravedad de la recomendación de implantar", "positions": [{"seat": "R3", "position": "Cambio menor de la discusión."}, {"seat": "EIC", "position": "Parte de un problema mayor de proporcionalidad."}], "arbitration": "Se trata como mayor porque depende de la validez causal."}], "da_adjudication": [{"id": "DA1", "title": "La selección explica el resultado", "category": "CRITICAL", "status": "validated", "rationale": "Coincide con el hallazgo crítico del revisor de metodología y está anclado en el texto."}, {"id": "DA2", "title": "De dos centros a toda la atención primaria", "category": "MAJOR", "status": "validated", "rationale": "Corroborado por el revisor de encaje."}], "decision": "Major Revision", "decision_subtype": "", "matrix": {"mechanical": "Major Revision", "seats": {"EIC": "Major Revision", "R1": "Major Revision", "R2": "Major Revision", "R3": "Minor Revision"}, "override_rationale": ""}, "verified_criteria": ["La intervención está descrita con detalle suficiente para replicarla.", "La calidad de vida se mide con un instrumento validado."], "unresolved_criteria": [{"criterion": "Inferencia causal compatible con el diseño", "anchor": "text: Conclusiones", "repairable": true, "work_required": "Análisis ajustado y lenguaje de asociación."}, {"criterion": "Integración de la literatura", "anchor": "absence: Referencias", "repairable": true, "work_required": "Situar el estudio frente a ensayos y revisiones."}], "letter": "Estimados autores:\n\nGracias por enviar su trabajo. El panel valora la pertinencia de la pregunta para atención primaria y la descripción detallada del programa, que lo hace replicable.\n\n**Decisión: revisión mayor.** Hay dos criterios decisivos sin resolver, ambos reparables. El primero es la inferencia causal: los grupos se formaron por centro sin aleatorizar y difieren al inicio en edad y sexo, de modo que el análisis actual no permite atribuir el cambio al programa. El segundo es la integración de la literatura, con solo dos referencias.\n\nTres revisores coinciden en que las conclusiones van más allá del diseño. El abogado del diablo plantea que la autoselección y las comparaciones múltiples podrían explicar los resultados; el panel considera este punto confirmado, porque coincide con el análisis del revisor de metodología.\n\nEn la próxima versión esperamos un análisis ajustado, la corrección por comparaciones múltiples o la declaración de un resultado principal, un análisis de las pérdidas, la discusión frente a la literatura y a la diferencia mínima importante del SF-36, y unas conclusiones proporcionadas al diseño.\n\nAtentamente,\nEl editor", "roadmap": [{"id": "RM1", "source_seats": ["EIC"], "source_findings": ["W1"], "item": "Ajustar las conclusiones al diseño", "criterion": "Proporcionalidad", "evidence_anchor": "text: Conclusiones", "work_required": "Lenguaje de asociación; presentar como estudio piloto.", "repairable": true, "severity": "Major"}, {"id": "RM2", "source_seats": ["R1"], "source_findings": ["W1"], "item": "Ajustar por diferencias basales", "criterion": "Validez interna", "evidence_anchor": "text: Resultados, edad y sexo", "work_required": "ANCOVA con edad, sexo y valor basal.", "repairable": true, "severity": "Critical"}, {"id": "RM3", "source_seats": ["R1"], "source_findings": ["W2"], "item": "Corregir las comparaciones múltiples", "criterion": "Validez estadística", "evidence_anchor": "text: Métodos, prueba t", "work_required": "Resultado principal o corrección de Holm; IC 95 %.", "repairable": true, "severity": "Major"}, {"id": "RM4", "source_seats": ["R1"], "source_findings": ["W3"], "item": "Analizar las pérdidas", "criterion": "Sesgo de desgaste", "evidence_anchor": "text: Resultados, 61 de 72", "work_required": "Comparar abandonos y análisis de sensibilidad.", "repairable": true, "severity": "Major"}, {"id": "RM5", "source_seats": ["R2"], "source_findings": ["W1", "W2"], "item": "Incorporar la literatura y la relevancia clínica", "criterion": "Integración de la literatura", "evidence_anchor": "absence: Referencias", "work_required": "Revisiones sistemáticas y diferencia mínima importante del SF-36.", "repairable": true, "severity": "Major"}, {"id": "RM6", "source_seats": ["R3"], "source_findings": ["W1"], "item": "Discutir la viabilidad de implantarlo", "criterion": "Impacto práctico", "evidence_anchor": "text: Conclusiones", "work_required": "Recursos, equidad de acceso y sostenibilidad.", "repairable": true, "severity": "Minor"}], "residual_uncertainty": "Sin el análisis ajustado, no se puede saber si alguna mejora se mantiene.", "_mech": {"decision": "Major Revision", "note": "Regla aplicada a las recomendaciones de cuatro revisores.", "flags": [], "vals": [1, 2, 2, 2]}, "_gate": {"total": 1, "blocking": 1, "unadjudicated": [], "blocks_accept": true}}, "usage": {"in": 61200, "out": 14800, "calls": 7}};
+function demo(){
+  if(S.running) return;
+  const d = JSON.parse(JSON.stringify(DEMO));
+  Object.assign(S, {phase0:d.phase0, cards:d.cards, seats:d.seats, synth:d.synth, usage:d.usage, coach:[], triage:{}, rereview:null, mode:'full', reviewId:null, _demo:true});
+  $('#mode').value = 'full'; $('#manuscript').value = EJEMPLOS[0].texto; $('#title').value = EJEMPLOS[0].titulo; $('#venue').value = EJEMPLOS[0].venue; S._texto = EJEMPLOS[0].texto;
+  [0,1,2].forEach(k => PSTATE[k] = 'listo'); PSTATE[3] = 'disponible';
+  toggleMode(); pintaModos(); renderAll(); go(4);
+  toast('Revisión de muestra del estudio de ejercicio en mayores. Recorre el panel, los informes y la decisión.', 5000);
+}
+$('#btnDemo').onclick = demo;
+/* la muestra no se guarda en el historial */
+const _persist = persist; persist = function(){ if(!S._demo) _persist(); };
+$('#btnEye').onclick = () => { const k = $('#apiKey'); k.type = k.type === 'password' ? 'text' : 'password'; };
+$('#drop').addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('#file').click(); } });
+
+/* ── arranque ── */
+init(); pintaModos(); go(0);
+function nomSeat(k){ return ({EIC:'Revisor de encaje', R1:'Metodología', R2:'Dominio', R3:'Perspectiva', DA:'Abogado del diablo'})[String(k).trim()] || k; }
+
 </script>
 </body>
 </html>
