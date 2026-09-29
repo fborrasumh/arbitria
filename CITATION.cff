@@ -1,6 +1,7 @@
 cff-version: 1.2.0
 message: "Si usas este software, cítalo con estos metadatos."
 title: "ArbitrIA"
+abstract: "Revisión por pares simulada para ensayar antes de enviar un artículo: cinco revisores de IA con papeles distintos y ciegos entre sí, un editor que sintetiza la decisión sin inventar comentarios, una hoja de ruta de cambios y la verificación de la versión revisada."
 type: software
 authors:
   - family-names: "Borrás Rocher"
@@ -8,8 +9,15 @@ authors:
     affiliation: "Universidad Miguel Hernández de Elche"
     orcid: "https://orcid.org/0000-0002-5519-4573"
 doi: "10.5281/zenodo.22269115"
-version: "1.0.0"
-date-released: "2026-09-03"
+version: "2.0.0"
+date-released: "2026-09-29"
 url: "https://fborrasumh.github.io/arbitria/"
 repository-code: "https://github.com/fborrasumh/arbitria"
 license: MIT
+keywords:
+  - "revisión por pares"
+  - "publicación científica"
+  - "manuscritos"
+  - "escritura académica"
+  - "educación superior"
+  - "inteligencia artificial"
