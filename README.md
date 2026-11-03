@@ -2,23 +2,22 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22269115.svg)](https://doi.org/10.5281/zenodo.22269115)
 
-**Aplicación:** https://fborrasumh.github.io/arbitria/
+**Aplicación:** https://fborrasumh.github.io/arbitria/ · **Idiomas:** español (por defecto), inglés y portugués (selector en la barra superior, o `?lang=en` / `?lang=pt`).
 
-Somete tu artículo a un tribunal antes que a la revista. Cinco revisores de IA con papeles distintos leen el manuscrito **sin ver lo que dicen los demás**. Un editor reúne sus informes y entrega una carta de decisión y una **hoja de ruta de cambios**. Si después revisas el trabajo, ArbitrIA comprueba si has atendido cada comentario. Aplicación de un solo fichero (`index.html`), sin servidor.
+Somete tu artículo a un tribunal antes que a la revista. Cinco revisores de IA con papeles distintos leen el manuscrito **sin ver lo que dicen los demás**. Un editor reúne sus informes y entrega una carta de decisión y una **hoja de ruta de cambios**. **El código comprueba** que cada cita de una crítica está de verdad en tu texto y que la hoja de ruta remite a hallazgos reales. Si después revisas el trabajo, ArbitrIA comprueba si has atendido cada comentario. Aplicación de un solo fichero (`index.html`), sin servidor.
 
-## Novedades de la versión 2.0
+## Novedades de la versión 3.0
 
-- Recorrido guiado con el estilo de Forja: **Inicio → Manuscrito → Panel → Informes → Decisión**. Cada fase lleva a su pantalla.
-- **Todo en castellano llano.**
-  - La jerga interna del procedimiento se ha sustituido por explicaciones.
-  - Las etiquetas se muestran en castellano: «Revisión mayor», «Cumple en parte», «Crítico», «Atendido en parte»…
-  - Los revisores aparecen por su nombre, no por sus siglas.
-  - Los prompts no cambian: la traducción se hace solo al mostrar y al exportar.
-- **Modos explicados en tarjetas:** completa, rápida, metodología, guiada y re-revisión.
-- **Ejemplos**: una revisión completa de muestra que se ve sin clave y dos manuscritos con fallos reales para probarla (un estudio cuasiexperimental y uno transversal).
-- **Modelos económicos por defecto.** El editor usaba gpt-5.6-sol, el más caro; ahora todos usan gpt-6-luna, con los demás disponibles en los ajustes avanzados.
-- **Corregido**: la re-revisión podía devolver «Aceptar» si el verificador no entregaba ningún veredicto. Ahora, sin veredictos, la decisión es «Lo decide una persona».
-- **Corregido**: la exportación a Markdown y Word salía con las etiquetas en inglés.
+- Rehecha con el sistema Forja: interfaz en **español, inglés y portugués**, con la revisión de muestra y los manuscritos de ejemplo en los tres idiomas.
+- **OpenAI, Google Gemini o Anthropic Claude**, con la clave de cada persona y un desplegable con los modelos de esa clave. Modelo propio opcional para el editor y para el revisor 2.
+- **Verificación por código** (nueva):
+  - Cada cita de las anclas de los revisores se busca en el manuscrito (sin distinguir mayúsculas, tildes ni puntuación); la que no aparece se marca.
+  - Un problema crítico o importante sin ancla comprobable se señala para tratarlo como pregunta.
+  - Cada punto de la hoja de ruta debe remitir a revisores y hallazgos que existen.
+  - La regla de decisión y la puerta del abogado del diablo se recalculan; si el editor se aparta de la regla sin explicarlo, se avisa. Un problema crítico del abogado del diablo que el editor no adjudica también impide aceptar.
+  - En la re-revisión, un punto sin veredicto, con un veredicto no válido o con una cita que no está en la versión nueva cuenta como no verificable.
+- **Privacidad**: correos, teléfonos y documentos de identidad se enmascaran antes de enviar, y antes del primer envío se ve lo que sale.
+- Word generado en el navegador, sin librerías externas. El historial de la versión 2 («Mis revisiones») se conserva.
 
 ## El panel
 
@@ -30,7 +29,7 @@ Somete tu artículo a un tribunal antes que a la revista. Cinco revisores de IA 
 | Perspectiva | Otras disciplinas, impacto práctico, supuestos |
 | Abogado del diablo | El contraargumento más fuerte; no vota |
 
-Antes de la revisión, un analista lee el manuscrito y propone el perfil de cada revisor, que puedes editar. Después, el editor reúne los informes: coincidencias, desacuerdos arbitrados, qué hace con los problemas críticos del abogado del diablo, carta de decisión y hoja de ruta. Opcionalmente, un revisor te hace preguntas para que planifiques la revisión.
+Antes de la revisión, un analista lee el manuscrito y propone el perfil de cada revisor, que puedes editar. Después, el editor reúne los informes: coincidencias, desacuerdos arbitrados, qué hace con los problemas críticos del abogado del diablo, carta de decisión y hoja de ruta. Opcionalmente, un revisor te hace preguntas para que planifiques la revisión. Modos: completa, rápida, metodología, guiada y re-revisión (contrato de tres puertas: criterios antes de ver la versión nueva, veredicto antes de leer la carta de respuesta y, al final, la carta).
 
 ## Reglas que no se saltan
 
@@ -39,23 +38,36 @@ Antes de la revisión, un analista lee el manuscrito y propone el perfil de cada
 - El editor no puede inventar comentarios y no puede ignorar un problema crítico del abogado del diablo.
 - No hay puntuación ni probabilidad de aceptación: solo si cada criterio se cumple y por qué.
 - El manuscrito se trata como dato: las instrucciones incrustadas en él no se obedecen y se avisan.
-- En la re-revisión, los criterios se fijan antes de ver la versión nueva y la carta de respuesta solo se lee al final.
+
+## Qué comprueba el código y qué no
+
+Comprueba que las citas existen en el texto, la trazabilidad de la hoja de ruta, la regla de decisión y la puerta del abogado del diablo. **No** comprueba si una crítica es acertada, si una cita está bien interpretada ni si una ausencia es real: una cita encontrada solo prueba que el pasaje existe.
 
 ## Advertencia de método
 
-Cinco papeles sobre el mismo modelo y el mismo proveedor no son cinco revisores independientes: comparten sesgos, y el consenso puede amplificar un error. Es un ensayo para anticipar críticas y mejorar el trabajo, nunca un sustituto de la revisión real ni una predicción de su resultado.
+Cinco papeles sobre el mismo modelo y el mismo proveedor no son cinco revisores independientes: comparten sesgos, y el consenso puede amplificar un error. Los juicios no están calibrados (`NOT_CALIBRATED`): el modo de calibración del skill original no está implementado. Es un ensayo para anticipar críticas y mejorar el trabajo, nunca un sustituto de la revisión real ni una predicción de su resultado.
+
+## Privacidad
+
+El manuscrito se lee y se guarda en el navegador (IndexedDB). Al revisar, viaja solo a tu proveedor de IA, con tu clave (guardada en `localStorage`; la de OpenAI se comparte con el catálogo como `ia_openai_key`), y con los datos personales detectables enmascarados. El historial no guarda el texto del manuscrito. Una revisión completa son unas siete llamadas con el manuscrito entero; el coste depende del modelo y del proveedor.
+
+## Límites
+
+- La lectura de PDF necesita texto seleccionable (un PDF escaneado no sirve) y carga pdf.js o mammoth desde cdnjs/jsDelivr la primera vez.
+- El enmascarado detecta correos, teléfonos y DNI/NIE, no nombres de personas en el texto.
+- Probado con IA simulada (incluidas respuestas que mienten) en los tres proveedores; no con claves reales en esta versión.
 
 ## Origen
 
 Reproduce en el navegador el procedimiento del skill *academic-paper-reviewer* de Cheng-I Wu.
 
-## Privacidad
+## Autoría
 
-El manuscrito se lee en el navegador y solo viaja a OpenAI con la clave del usuario, guardada en `localStorage` (`ia_openai_key`). Las revisiones se guardan en IndexedDB del navegador, sin el texto del manuscrito.
+Fernando Borrás Rocher (Universidad Miguel Hernández de Elche) · ORCID [0000-0002-5519-4573](https://orcid.org/0000-0002-5519-4573)
 
 ## Cómo citar
 
-Borrás Rocher, F. (2026). *ArbitrIA* (versión 2.0.0) [Software]. Universidad Miguel Hernández de Elche. https://doi.org/10.5281/zenodo.22269115
+Borrás Rocher, F. (2026). *ArbitrIA* (versión 3.0.0) [Software]. Universidad Miguel Hernández de Elche. https://doi.org/10.5281/zenodo.22269115
 
 El DOI es el de concepto: apunta siempre a la última versión. GitHub ofrece la cita en APA y BibTeX con el botón *Cite this repository*, a partir de `CITATION.cff`.
 
